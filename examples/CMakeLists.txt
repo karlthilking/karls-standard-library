@@ -1,0 +1,8 @@
+add_executable(basic_demo basic_demo.cpp)
+target_link_libraries(basic_demo karls_stl)
+
+add_executable(algorithms_demo algorithms_demo.cpp)
+target_link_libraries(algorithms_demo karls_stl)
+
+add_executable(performance_comparison performance_comparison.cpp)
+target_link_libraries(performance_comparison karls_stl)
