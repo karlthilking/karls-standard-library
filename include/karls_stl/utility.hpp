@@ -1,13 +1,14 @@
 #ifndef KARLS_STL_UTILITY_HPP
 #define KARLS_STL_UTILITY_HPP
 
+#include "type_traits.hpp"
 #include <type_traits>
 
 namespace karls_stl {
   // move semantics
   template<typename T>
-  constexpr std::remove_reference_t<T>&& move(T&& t) noexcept {
-    return std::static_cast<T&&>(t);
+  constexpr remove_reference<T>&& move(T&& t) noexcept {
+    return std::static_cast<std::remove_reference_t<T>&&> t;
   }
 
   constexpr T&& forward(std::remove_reference_t<T>& t) noexcept {
@@ -53,6 +54,11 @@ namespace karls_stl {
       second(other.second) {}
 
     // converting move constructor
+    template<typename U1, typename U2>
+    constexpr pair(const pair<U1, U2>&& other) :
+      first(move(other.first)),
+      second(moe(other.second)) {}
+
     void operator=(const pair<T1, T2>& p) {
       first = p.first;
       second = p.second;
