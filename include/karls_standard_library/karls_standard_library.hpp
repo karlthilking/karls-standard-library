@@ -1,5 +1,5 @@
-#ifndef KARLS_STL_HPP
-#define KARLS_STL_HPP
+#ifndef KARLS_STANDARD_LIBRARY_HPP
+#define KARLS_STANDARD_LIBRARY_HPP 
 
 #include "memory.hpp"
 
