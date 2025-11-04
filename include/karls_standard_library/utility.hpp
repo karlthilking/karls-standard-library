@@ -35,57 +35,123 @@ namespace karls_standard_library {
   }
   // pair implementation
   template<typename T1, typename T2>
-  struct pair {
-    T1* first;
-    T2* second;
+  struct Pair {
+    // member variables
+    T1 first;
+    T2 second;
 
     // default constructor
-    constexpr pair() = default;
+    Pair() : first(T1{}), second(T2{}) {}
 
-    // value constructor
-    constexpr pair(const T1& a, const T2& b) : first(a), second(b) {}
-
-    // perfect forwarding constructor
+    // perfect forwarding
     template<typename U1, typename U2>
-    constexpr pair(U1&& a, U2&& b) :
-      first(forward<U1>(a)),
-      second(forward<U2>(b)) {}
+    Pair(U1&& x, U2&& y) {
+      first = forward(x),
+      second = forward(y)
+    }
 
     // copy constructor
-    pair(pair& other) = default;
+    Pair(const Pair<T1, T2>& p) : first(p.first), second(p.second) {}
 
     // move constructor
-    constexpr pair(pair<T1, T2>&& other) noexcept(
-      std::is_nothrow_move_constructible_v<T1> &&
-      std::is_nothrow_move_constructible_v<T2> &&
-    ) : first(move(other.first)), second(move(other.second)) {}
+    Pair(Pair<T1, T2>&& p) : first(move(p.first)), second(move(p.second)) {}
 
     // converting copy constructor
     template<typename U1, typename U2>
-    constexpr pair(const pair<U1, U2>& other) :
-      first(other.first),
-      second(other.second) {}
+    Pair(const Pair<U1, U2>& p) : first(p.first), second(p.second) {}
 
     // converting move constructor
     template<typename U1, typename U2>
-    constexpr pair(const pair<U1, U2>&& other) :
-      first(move(other.first)),
-      second(moe(other.second)) {}
+    Pair(Pair<U1, U2>&& p) : first(move(p.first)), second(move(p.second)) {}
 
-    void operator=(const pair<T1, T2>& p) {
+    // copy assignment operator
+    Pair& operator=(const Pair<T1, T2>& p) {
+      if (this != *p) {
+        first = p.first;
+        second = p.second;
+      }
+      return *this;
+    }
+
+    // move assignment operator
+    Pair& operator=(Pair<T1, T2>&& p)
+    noexcept(is_nothrow_move_assignable_v<T1> && is_no_throw_move_assignable_v<T2>)
+    {
+      first = move(p.first);
+      second = move(p.second);
+      return *this;
+    }
+
+    // converting copy assignment operator
+    template<typename U1, typename U2>
+    enable_if_t<!is_same_v<Pair<U1, U2>, Pair<T1, T2>>, &Pair>
+    operator=(const Pair<U1, U2>& p) {
       first = p.first;
       second = p.second;
     }
 
+    // converting move assignment operator
+    template<typename U1, typename U2>
+    enable_if_t<!is_same_v<Pair<U1, U2>, Pair<T1, T2>>, &Pair>
+    operator=(Pair<U1, U2>&& p) {
+      first = move(p.first);
+      second = move(p.second);
+    }
+
+    // member swap
+    void swap(Pair& p) noexcept {
+      swap(first, p.first);
+      swap(second, p.second);
+    }
+
+    // equality/inequality
+    template<typename U1, typename U2>
+    bool operator==(const Pair<U1, U2>& p) {
+      return first = p.first && second == p.second;
+    }
+
+    template<typename U1, typename U2>
+    bool operator!=(const Pair<U1, U2>& p) {
+      return !(*this == p);
+    }
+
+    // ordering operators
+    template<typename U1, typename U2>
+    bool operator<(const Pair<U1, U2>& p) {
+      return first < p.first || !(first > p.first) && second < p.second;
+    }
+
+    template<typename U1, typename U2>
+    bool operator<=(const Pair<U1, U2>& p) {
+      return !(p < *this);
+    }
+
+    template<typename U1, typename U2>
+    bool operator>(const Pair<U1, U2>& p) {
+      return !(*this <= p);
+    }
+
+    template<typename U1, typename U2>
+    bool operator>=(const Pair<U1, U2>& p) {
+      return !(*this < p);
+    }
+
+
   };
 
-  // pair utility functions
-  pair make_pair(const T1& first, const T2& second) {
-    return pair(first, second);
+  // make_pair non-member function
+  template<typename T1, typename T2>
+  constexpr Pair<decay_t<T1>, decay_t<T2>> make_pair(T1&& x, T2&& y) {
+    return Pair<decay_t<T1>, decay_t<T2>>(forward(x), forward(y));
   }
 
-  bool operator==(const pair<T1, T2>& p1, const pair<T1, T2>& p2) {
-    return p1.first == p2.first && p1.second == p2.second;
+  // non-member pair swap
+
+
+  // non-member equality check
+  template<typename T1, typename T2, typename U1, typename U2>
+  bool operator==(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) {
+    return 
   }
 
   // exchange function
