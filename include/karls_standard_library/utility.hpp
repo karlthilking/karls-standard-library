@@ -7,7 +7,7 @@ namespace karls_standard_library {
   // move semantics
   template<typename T>
   constexpr remove_reference<T>&& move(T&& t) noexcept {
-    return static_cast<remove_reference_t<T>::type&&>(t);
+    return static_cast<remove_reference_t<T>&&>(t);
   }
 
   // forward

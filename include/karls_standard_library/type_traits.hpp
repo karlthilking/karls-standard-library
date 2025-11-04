@@ -218,12 +218,14 @@ namespace karls_standard_library {
 
   // conditional alias
   template<bool B, typename T, typename F>
-  using conditional_t = conditional<B,T,F>::type;
+  using conditional_t = typename conditional<B,T,F>::type;
 
   namespace detail {
     template<typename T>
-    struct type_identity { using type = T };
-
+    struct type_identity {
+      using type = T;
+    };
+    
     // tries to add a pointer for referenceable type
     template<typename T>
     auto try_add_pointer(int) -> type_identity<typename remove_reference<T>::type*>;
@@ -335,37 +337,59 @@ namespace karls_standard_library {
   template<typename T>
   using decay_t = typename decay<T>::type;
 
+  // returns true if T is constructible with Args, false otherwise
   template<typename T, typename... Args>
   struct is_constructible {
-    
+    static constexpr bool value = __is_constructible(T, Args...);
   };
-
   // alias for is_constructible
   template<typename T, typename... Args>
   inline constexpr bool is_constructible_v = is_constructible<T, Args...>::value;
 
+  // returns true if is constructible and the variable definition does not call any non trivial operations
   template<typename T, typename... Args>
   struct is_trivially_constructible {
-
+    static constexpr bool value = __is_trivially_constructible(T, Args...);
   };
-
-  // alias for is_trivially_constructible
+  // alias for is_trivially constructible
   template<typename T, typename... Args>
   inline constexpr bool is_trivially_constructible_v = is_trivially_constructible<T, Args...>::value;
 
+  // returns true if T is constructible with Args and the definition is noexcept
+  template<typename T, typename... Args>
+  struct is_nothrow_constructible {
+    static constexpr bool value = __is_nothrow_constructible(T, Args...);
+  };
+  // alias for is_nothrow_constructible
+  template<typename T, typename... Args>
+  inline constexpr bool is_nothrow_constructible_v = is_nothrow_constructible<T, Args...>::value;
+
+  // returns true if T has a move constructor or if T has a copy constructor that acceps const T&
   template<typename T>
   struct is_move_constructible {
-    is_constructible<T, typename add_rvalue_reference<T>::type> {};
+    static constexpr bool value = is_constructible<T, typename add_rvalue_reference_t<T>>;
   };
-
   // alias for is_move_constructible
   template<typename T>
   inline constexpr bool is_move_constructible_v = is_move_constructible<T>::value;
 
+  // returns true if T has a move constructor and no non-trivial operations occur
   template<typename T>
   struct is_trivially_move_constructible {
-    
+    static constexpr bool value = is_trivially_constructible<T, typename add_rvalue_reference_t<T>>;
   };
+  // alias for is_trivially_move_constructible
+  template<typename T>
+  inline constexpr bool is_trivially_move_constructible_v = is_trivially_move_constructible<T>::value;
+
+  // returns true if T has a move constructor that is noexcept
+  template<typename T>
+  struct is_nothrow_move_constructible {
+    static constexpr bool value = is_nothrow_constructible<T, typename add_rvalue_reference_t<T>>;
+  };
+  // alias for is_nothrow_move_constructible
+  template<typename T>
+  inline constexpr bool is_nothrow_move_constructible_v = is_nothrow_move_constructible<T>::value;
 
   // if true, enable_if contains the type otherwise it will not
   template<bool B, typename T = void>
@@ -373,12 +397,12 @@ namespace karls_standard_library {
 
   template<typename T>
   struct enable_if<true, T> {
-    return T;
+    
   };
 
   // enable_if alias
   template<bool B, typename T>
-  using enable_if_t = typename enable_if<B, T>::type;
+  using enable_if_t = enable
 }
 
 

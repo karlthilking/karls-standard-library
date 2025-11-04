@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdexcept>
 
 void test_memory();
 void test_vector();
@@ -28,9 +29,12 @@ int main() {
     test_algorithms();
     std::cout << "Algorithms tests passed.\n\n";
   }
-  except (const std::exception& e) {
+  catch(const std::exception& e) {
     std::cerr << "Tests failed: " << e.what() << "\n";
     return 1;
+  }
+  catch(...) {
+    return 2;
   }
   return 0;
 }
