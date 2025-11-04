@@ -9,265 +9,183 @@ namespace karls_standard_library {
   template<typename T>
   class Vector {
   private:
-    T* m_ptr;
-    size_t size;
-    size_t capacity;
-    
-    // helper function to increase vector capacity
-    void grow() {
-      size_t new_cap = (capacity == 0) ? 1 : 2 * capacity;
-      T* new_ptr = allocate(new_cap);
-      for (size_t i = 0; i < size; ++i) {
-        construct(new_ptr + i, move(m_ptr[i]));
-        destroy(m_ptr + i);
+    T* data_;
+    size_t size_;
+    size_t capacity_;
+
+    // helper function to increase capacity
+    void grow() noexcept {
+      size_t new_cap = (capacity_ == 0) ? 1 : 2 * capacity_;
+      T* new_data = new T[new_cap];
+      for (size_t i = 0; i < size_; ++i) {
+        new_data[i] = data_[i];
       }
-      deallocate(m_ptr, capacity);
-      m_ptr = new_ptr;
-      capacity = new_cap;
+      delete[] data_;
+      data_ = new_data;
+      capacity_ = new_cap;
     }
   public:
     // default constructor
-    Vector() : m_ptr(nullptr), size(0), capacity(0) {}
+    Vector() : data_(nullptr), size_(0), capacity_(0) {}
 
-    // destructor
-    ~Vector() {
-      for (size_t i = 0; i < size; ++i) {
-        destroy(m_ptr + i);
+    // initial size and capacity, optional initial value
+    explicit Vector(size_t count, const T& value = T{}) : size_(count), capacity_(count)
+    {
+      if (size_ == 0) {
+        data_ = nullptr;
       }
-      deallocate(m_ptr, capacity);
-      m_ptr = nullptr;
-      size = 0;
-      capacity = 0;
+      else {
+        data_ = new T[count];
+        for (size_t i = 0; i < count; ++i) {
+          data_[i] = value;
+        }
+      }
     }
 
-    // constructor with intitialize size and capacity, and optional value
-    explicit Vector(size_t count, const T& value = T{}) : m_ptr(nullptr), size(count), capacity(count) {
-      resize(count, value);
-    }
-
-    // range constructor with iterators
-    template<typename Iterator>
-    Vector(Iterator first, Iterator last) : m_ptr(nullptr), size(0), capacity(0) {
-      for (auto it = first; it != last; ++it) {
-        push_back(*it);
+    // list initialization
+    Vector(initializer_list<T> init) : size_(init.size()), capacity_(init.size())
+    {
+      if (capacity_ == 0) {
+        data_ = nullptr;
+      }
+      else {
+        data_ = new T[capacity_];
+        size_t i = 0;
+        for (const T& item : init) {
+          data_[i++] = item;
+        }
       }
     }
 
     // copy constructor
-    Vector(const Vector& other) : m_ptr(nullptr), size(0), capacity(0) {
-      reserve(other.size);
-      for (size_t i = 0; i < other.size; ++i) {
-        push_back(other[i]);
+    Vector(const Vector& other) : size_(other.size_), capacity_(other.capacity_)
+    {
+      if (capacity_ == 0) {
+        data_ = nullptr;
+      }
+      else {
+        data_ = new T[capacity_];
+        for (size_t i = 0; i < size_; ++i) {
+          data_[i] = other.data_[i];
+        }
       }
     }
 
     // copy assignment operator
     Vector& operator=(const Vector& other) {
       if (this != &other) {
-        clear();
-        reserve(other.size);
-        for (size_t i = 0; i < other.size; ++i) {
-          push_back(other[i]);
+        size_ = other.size_;
+        capacity_ = other.capacity_;
+        delete[] data_;
+        if (capacity_ == 0) {
+          data_ = nullptr;
+        }
+        else {
+          data_ = new T[capacity_];
+          for (size_t i = 0; i < size_; ++i) {
+            data_[i] = other.data_[i];
+          }
         }
       }
       return *this;
     }
 
-    // list initialization assignment 
-    Vector& operator=(initializer_list<T> list) : m_ptr(nullptr), size(0), capacity(0) {
-      reserve(list.size());
-      for (const auto& item : list) {
-        push_back(item);
-      }
-    }
-
     // move constructor
-    Vector(Vector&& other) : m_ptr(other.m_ptr), size(other.size), capacity(other.capacity) {
-      other.m_ptr = nullptr;
-      other.size = 0;
-      other.capacity = 0;
-    } 
+    Vector(Vector&& other) : 
+      data_(exchange(other.data_, nullptr)),
+      size_(exchange(other.size_, 0)),
+      capacity_(exchange(other.capacity_, 0)) {}
 
     // move assignment operator
     Vector& operator=(Vector&& other) {
       if (this != &other) {
-        for (size_t i = 0; i < size; ++i) {
-          destroy(m_ptr + i);
-        }
-        deallocate(m_ptr, capacity);
-        m_ptr = other.m_ptr;
-        size = other.size;
-        capacity = other.capacity;
-        other.m_ptr = nullptr;
-        other.size = 0;
-        other.capacity = 0;
+        delete[] data_;
+        data_ = exchange(other.data_, nullptr);
+        size_ = exchange(other.size_, 0);
+        capacity_ = exchange(other.capacity_, 0);
       }
       return *this;
     }
 
-    // assign 
-    void assign(size_t count, const T& value) {
-
-    }
-
-    // return element at index with bounds checking
-    T& at(size_t index) {
-      if (index >= size) {
-        throw std::out_of_range("index out of range");
-      }
-      return m_ptr[index];
-    }
-    const T& at(size_t index) const {
-      if (index >= size) {
-        throw std::out_of_range("index out of range");
-      }
-      return m_ptr[index];
-    }
-
-    // return element at specific index with direct access 
-    T& operator[](size_t index) {
-      return m_ptr[index];
-    }
-    const T& operator[](size_t index) const {
-      return m_ptr[index];
-    }
-    
-    // return first element
-    const T& front() const {
-      if (!empty()) {
-        return m_ptr[0];
-      }
-    }
-
-    // return last element
-    const T& back() const {
-      if (!empty()) {
-        return m_ptr[size - 1];
-      }
-    }
-
-    // return true if vector is empty, false otherwise
-    bool empty() const {
-      return size == 0;
-    }
+    // true if vector is empty, false otherwise
+    bool empty() const noexcept { return size_ == 0; }
 
     // return size of the vector
-    size_t size() const {
-      return size;
-    }
-    
+    size_t size() const noexcept { return size_; }
+
     // return capacity of the vector
-    size_t capacity() const {
-      return capacity;
+    size_t capacity() const noexcept { return capacity_; }
+
+    // direct access into vector
+    T& operator[](size_t index) noexcept { return data_[index]; }
+    const T& operator[](size_t index) const noexcept { return data_[index]; }
+
+    // direct access to first element
+    T& front() noexcept { return data_[0]; }
+    const T& front() const noexcept { return data_[0]; }
+
+    // direct access to last element
+    T& back() noexcept { return data_[size_ - 1]; }
+    const T& back() const noexcept { return data_[size_ - 1]; }
+
+    // index into the vector with bounds checking
+    T& at(size_t index) {
+      if (index >= size) throw std::out_of_range("Index out of bounds"); 
+      return data_[index];
+    }
+    const T& at(size_t index) const {
+      if (index >= size) throw std::out_of_range("Index out of bounds");
     }
 
-    // reduce capacity to size; remove unused capacity
-    void shrink_to_fit() {
-      while (capacity > size) {
-        --capacity;
+    // remove unused capacity
+    void shrink_to_fit() noexcept {
+      while (capacity_ > size_) {
+        --size_;
       }
     }
 
-    // add element to back of vector
-    void push_back(const T& value) {
-      if (size == capacity) {
+    // remove all elements and reduce size to 0; capacity remains unchanged
+    void clear() noexcept {
+      delete[] data_;
+      data_ = nullptr;
+      size_ = 0;
+    }
+
+    // add element to end of vector
+    void push_back(const T& value) noexcept {
+      if (size_ == capacity_) {
         grow();
       }
-      construct(m_ptr + size, value);
-      ++size;
-    }
-    void push_back(T&& value) {
-      if (size == capacity) {
-        grow();
-      }
-      construct(m_ptr + size, move(value));
-      ++size;
+      data_[size_] = value;
+      ++size_;
     }
 
-    // remove last element from the vector
-    void pop_back() {
-      if (size > 0) {
+    // remove element from end of vector
+    void pop_back() noexcept {
+      if (size_ > 0) {
         --size;
       }
     }
 
-    // reserve new capacity
-    void reserve(size_t new_cap) {
-      if (new_cap <= capacity) {
-        return;
-      }
-      T* new_ptr = allocate(new_cap);
-      for (size_t i = 0; i < size; ++i) {
-        construct(new_ptr + i, move(m_ptr[i]));
-        destroy(m_ptr + i);
-      }
-      deallocate(m_ptr, capacity);
-      m_ptr = new_ptr;
-      capacity = new_cap;
-    }
-    // resize vector
-    void resize(size_t count) {
-      if (count == size) {
-        return;
-      }
-      else if (size > count) {
-        for (size_t i = count; i < size; ++i) {
-          destroy(m_ptr + i);
-        }
-        size = count;
-      }
-      else { // size < count
-        for (size_t i = size; i < count; ++i) {
-          construct(m_ptr + i, T{});
-        }
-        size = count;
-        if (capacity < size) : capacity = count;
-      }
-    }
-
-    // resize vector to new size with optional value
-    void resize(size_t count, const T& value = T{}) {
-      if (count == size) {
-        return;
-      }
-      else if (size > count) {
-
-      }
-      else {
-
-      }
-    }
-
-    // erase all elements from vector, maintain capacity
-    void clear() {
-      for(size_t i = 0; i < size; ++i) {
-        destroy(m_ptr + i);
-      }
-      size = 0;
-    }
-
-    // construct object in place and add to vector
-    template<typename ...Args>
-    void emplace_back(Args&&... args) {
-      if (size == capacity) {
-        grow();
-      }
-      construct(m_ptr + size, forward<Args>(args)..);
-      ++size;
-    }
-
-    // swap contents with other vector
-    void swap(const Vector& other) noexcept {
-      swap(m_ptr, other.m_ptr);
-      swap(size, other.size);
-      swap(capacity, other.capacity);
+    // swap with other vector
+    void swap(Vector& other) noexcept {
+      swap(data_, other.data_);
+      swap(size_, other.size_);
+      swap(capacity_, other.capacity_);
     }
   };
 
-  // non member swap function
-  template<typename T>
-  void swap(Vector<T>& lhs, Vector<T>& rhs) noexcept {
-    lhs.swap(rhs);
+  template<typename T, typename U>
+  bool operator==(const Vector<T>& lhs, const Vector<U>& rhs) {
+    if (lhs.size() != rhs.size()) return false;
+    else {
+      for (size_t i = 0; i < lhs.size(); ++i) {
+        if (lhs[i] != rhs[i]) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 }
 
