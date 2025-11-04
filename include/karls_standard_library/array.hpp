@@ -2,6 +2,7 @@
 #define KARLS_STANDARD_LIBRARY_ARRAY_HPP
 
 #include "cstddef.hpp"
+#include "initializer_list.hpp"
 #include <stdexcept>
 
 namespace karls_standard_library {

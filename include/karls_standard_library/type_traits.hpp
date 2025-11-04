@@ -366,6 +366,19 @@ namespace karls_standard_library {
   struct is_trivially_move_constructible {
     
   };
+
+  // if true, enable_if contains the type otherwise it will not
+  template<bool B, typename T = void>
+  struct enable_if {};
+
+  template<typename T>
+  struct enable_if<true, T> {
+    return T;
+  };
+
+  // enable_if alias
+  template<bool B, typename T>
+  using enable_if_t = typename enable_if<B, T>::type;
 }
 
 

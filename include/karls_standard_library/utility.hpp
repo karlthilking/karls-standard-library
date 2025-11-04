@@ -104,7 +104,7 @@ namespace karls_standard_library {
       swap(second, p.second);
     }
 
-    // equality/inequality
+    // equality/inequality ==, !=
     template<typename U1, typename U2>
     bool operator==(const Pair<U1, U2>& p) {
       return first = p.first && second == p.second;
@@ -115,7 +115,7 @@ namespace karls_standard_library {
       return !(*this == p);
     }
 
-    // ordering operators
+    // ordering operators <, <=, >, >=
     template<typename U1, typename U2>
     bool operator<(const Pair<U1, U2>& p) {
       return first < p.first || !(first > p.first) && second < p.second;
@@ -135,8 +135,6 @@ namespace karls_standard_library {
     bool operator>=(const Pair<U1, U2>& p) {
       return !(*this < p);
     }
-
-
   };
 
   // make_pair non-member function
@@ -146,13 +144,44 @@ namespace karls_standard_library {
   }
 
   // non-member pair swap
+  template<typename T1, typename T2, typename U1, typename U2>
+  void swap(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) {
+    lhs.swap(rhs);
+  }
 
-
-  // non-member equality check
+  // non-member pair equality and inequality checks
   template<typename T1, typename T2, typename U1, typename U2>
   bool operator==(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) {
-    return 
+    return lhs.first == rhs.first && lhs.second == rhs.second;
   }
+  template<typename T1, typename T2, typename U1, typename U2>
+  bool operator!=(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) {
+    return !(lhs == rhs);
+  }
+
+  // non-member pair ordering operators
+  template<typename T1, typename T2, typename U1, typename U2>
+  bool operator<(const Pair<T1, T2>& lhs, const Pair<U2, U2>& rhs) {
+    if (lhs.first != rhs.first) {
+      return lhs.first < rhs.first;
+    }
+    else {
+      return lhs.second < rhs.second;
+    }
+  }
+  template<typename T1, typename T2, typename U1, typename U2>
+  bool operator<=(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) {
+    return !(rhs < lhs);
+  }
+  template<typename T1, typename T2, typename U1, typename U2>
+  bool operator>(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) {
+    return rhs < lhs;
+  }
+  template<typename T1, typename T2, typename U1, typename U2>
+  bool operator>=(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) {
+    return !(lhs < rhs);
+  }
+
 
   // exchange function
   template<typename T, typename U = T>
