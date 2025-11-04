@@ -133,7 +133,7 @@ namespace karls_standard_library {
 
     void swap(String& other) noexcept {
       karls_standard_library::swap(data_, other.data_);
-      karls::standard_library::swap(size_, other.size_);
+      karls_standard_library::swap(size_, other.size_);
       karls_standard_library::swap(capacity_, other.capacity_);
     }
 

@@ -1,6 +1,9 @@
 #ifndef KARLS_STANDARD_LIBRARY_VECTOR_HPP
 #define KARLS_STANDARD_LIBRARY_VECTOR_HPP
 
+#include <stdexcept>
+#include "utility.hpp"
+
 namespace karls_standard_library {
   // vector implementation
   template<typename T>
@@ -60,7 +63,14 @@ namespace karls_standard_library {
 
     // copy assignment operator
     Vector& operator=(const Vector& other) {
-
+      if (this != &other) {
+        clear();
+        reserve(other.size);
+        for (size_t i = 0; i < other.size; ++i) {
+          push_back(other[i]);
+        }
+      }
+      return *this;
     }
 
     // list initialization assignment 
@@ -79,8 +89,20 @@ namespace karls_standard_library {
     } 
 
     // move assignment operator
-    Vector&& operator=(Vector&& other) {
-
+    Vector& operator=(Vector&& other) {
+      if (this != &other) {
+        for (size_t i = 0; i < size; ++i) {
+          destroy(m_ptr + i);
+        }
+        deallocate(m_ptr, capacity);
+        m_ptr = other.m_ptr;
+        size = other.size;
+        capacity = other.capacity;
+        other.m_ptr = nullptr;
+        other.size = 0;
+        other.capacity = 0;
+      }
+      return *this;
     }
 
     // assign 

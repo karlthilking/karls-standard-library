@@ -1,7 +1,7 @@
-#ifndef KARLS_STL_CSTDDEF_H
-#define KARLS_STL_CSTDDEF_H
+#ifndef KARLS_STL_CSTDDEF_HPP
+#define KARLS_STL_CSTDDEF_HPP
 
-namespace karls_stl {
+namespace karls_standard_library {
   // size_t alias
   using size_t = decltype(sizeof(0));
 
@@ -24,3 +24,5 @@ namespace karls_stl {
   // byte type
   enum class byte : unsigned char {};
 }
+
+#endif 
