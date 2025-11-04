@@ -1,4 +1,4 @@
-add_executable(test_mystl
+add_executable(test_my_standard_library
         main.cpp
         test_memory.cpp
         test_vector.cpp
@@ -7,7 +7,7 @@ add_executable(test_mystl
         test_utility.cpp
 )
 
-target_link_libraries(test_mystl karls_stl)
+target_link_libraries(test_my_standard_library karls_standard_library)
 
 add_executable(benchmark benchmark.cpp)
-target_link_libraries(benchmark karls_stl)
+target_link_libraries(benchmark karls_standard_library)

@@ -14,9 +14,9 @@ endif()
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
-add_library(karls_stl INTERFACE)
+add_library(karls_standard_library INTERFACE)
 
-target_include_directories(karls_stl INTERFACE
+target_include_directories(karls_standard_library INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:.>
 )
@@ -25,4 +25,4 @@ add_subdirectory(tests)
 add_subdirectory(examples)
 
 enable_testing()
-add_test(NAME karls_stl_tests COMMAND test_mystl)
+add_test(NAME karls_standard_library_tests COMMAND test_my_standard_library)
