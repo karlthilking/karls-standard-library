@@ -5,106 +5,141 @@
 #include "utility.hpp"
 
 namespace karls_standard_library {
+  template<typename vector>
+  class vector_iterator {
+  public:
+    using value_type = vector::value_type;
+    using pointer = value_type*;
+    using reference = value_type&;
+  private:
+    pointer ptr_;
+  public:
+    vector_iterator(pointer ptr) : ptr_(ptr) {}
+
+    vector_iterator& operator++() {
+      ptr_++;
+      return *this;
+    }
+    vector_iterator operator++(int) {
+      vector_iterator temp = *this;
+      ++(*this);
+      return temp;
+    }
+
+    vector_iterator& operator--() {
+      ptr_--;
+      return *this;
+    }
+    vector_iterator operator--(int) {
+      vector_iterator temp = *this;
+      --(*this);
+      return temp;
+    }
+
+    reference operator[](size_t index) { return *(ptr_ + index); }
+    pointer operator->() { return ptr_; }
+    reference operator&() { return *ptr_; } 
+    bool operator==(const vector_iterator& other) const { return ptr_ == other.ptr_; }
+    bool operator!=(const vector_iterator& other) const { return !(*this == other); }
+  };
+
+
   // vector implementation
   template<typename T>
-  class Vector {
+  class vector {
+  public:
+    using value_type = T;
+    using size_type = size_t;
+    using reference = T&;
+    using const_reference = const value_type&;
+    using iterator = vector_iterator<vector<T>>;
+    using const_iterator = cosnt vector_iterator<Vector<T>>;
+
+    iterator begin() { return data_; }
+    const_iterator begin() const { return data_; }
+    const_iterator cbegin() const { return data_; }
+
+    iterator end() { return data_ + size_; }
+    const_iterator end() { return data_ + size_; }
+    const_iterator cend() { return data_ + size_; }
   private:
     T* data_;
     size_t size_;
     size_t capacity_;
 
-    // helper function to increase capacity
-    void grow() noexcept {
-      size_t new_cap = (capacity_ == 0) ? 1 : 2 * capacity_;
-      T* new_data = new T[new_cap];
-      for (size_t i = 0; i < size_; ++i) {
-        new_data[i] = data_[i];
+    void dealloc() {
+      if (data_) {
+        operator delete[](data_);
+        data_ = nullptr;
       }
-      delete[] data_;
-      data_ = new_data;
-      capacity_ = new_cap;
+      capacity_ = 0;
     }
   public:
     // default constructor
-    Vector() : data_(nullptr), size_(0), capacity_(0) {}
+    vector() : data_(nullptr), size_(0), capacity_(0) {}
 
     // initial size and capacity, optional initial value
-    explicit Vector(size_t count, const T& value = T{}) : size_(count), capacity_(count)
+    explicit vector(size_t count, const T& value = T{}) :
+      data_(nullptr), size_(count), capacity_(count)
     {
-      if (size_ == 0) {
-        data_ = nullptr;
-      }
-      else {
-        data_ = new T[count];
-        for (size_t i = 0; i < count; ++i) {
+      if (size_ > 0) {
+        data_ = static_cast<T*>(operator new[](capacity_ * sizeof(T)));
+        for (size_t i = 0; i < size_; ++i) {
           data_[i] = value;
         }
       }
     }
 
     // list initialization
-    Vector(initializer_list<T> init) : size_(init.size()), capacity_(init.size())
+    vector(initializer_list<T> init) :
+      data_(nullptr), size_(init.size()), capacity_(init.size())
     {
-      if (capacity_ == 0) {
-        data_ = nullptr;
-      }
-      else {
-        data_ = new T[capacity_];
+      if (size_ > 0) {
+        data_ = static_cast<T*>(operator new[](capacity_ * sizeof(T)));
         size_t i = 0;
-        for (const T& item : init) {
-          data_[i++] = item;
+        for (const T& value : init) {
+          data_[i] = value;
+          ++i;
         }
       }
     }
 
     // copy constructor
-    Vector(const Vector& other) : size_(other.size_), capacity_(other.capacity_)
+    vector(const vector& other) : 
+      data_(nullptr), size_(other.size_), capacity_(other.capacity_)
     {
-      if (capacity_ == 0) {
-        data_ = nullptr;
-      }
-      else {
-        data_ = new T[capacity_];
-        for (size_t i = 0; i < size_; ++i) {
+      if (size_ > 0) {
+        data_ = static_cast<T*>(operator new[](capacity_ * sizeof(T)));
+        for (size_t i = 0; i < other.size_; ++i) {
           data_[i] = other.data_[i];
         }
       }
     }
 
     // copy assignment operator
-    Vector& operator=(const Vector& other) {
+    vector& operator=(const vector& other) {
       if (this != &other) {
-        size_ = other.size_;
-        capacity_ = other.capacity_;
-        delete[] data_;
-        if (capacity_ == 0) {
-          data_ = nullptr;
-        }
-        else {
-          data_ = new T[capacity_];
-          for (size_t i = 0; i < size_; ++i) {
-            data_[i] = other.data_[i];
-          }
-        }
+        vector temp(other);
+        swap(temp);
       }
       return *this;
     }
 
     // move constructor
-    Vector(Vector&& other) : 
+    vector(vector&& other) : 
       data_(exchange(other.data_, nullptr)),
       size_(exchange(other.size_, 0)),
       capacity_(exchange(other.capacity_, 0)) {}
 
     // move assignment operator
-    Vector& operator=(Vector&& other) {
+    vector& operator=(vector&& other) {
       if (this != &other) {
-        delete[] data_;
+        clear();
+        operator delete[] data_;
         data_ = exchange(other.data_, nullptr);
         size_ = exchange(other.size_, 0);
         capacity_ = exchange(other.capacity_, 0);
       }
-      return *this;
     }
 
     // true if vector is empty, false otherwise
@@ -135,45 +170,100 @@ namespace karls_standard_library {
     }
     const T& at(size_t index) const {
       if (index >= size) throw std::out_of_range("Index out of bounds");
+      return data_[index];
     }
 
     // remove unused capacity
     void shrink_to_fit() noexcept {
-      while (capacity_ > size_) {
-        --size_;
+      if (size_ == capacity_) return;
+      else if (size_ == 0) dealloc; return;
+      T* new_data = static_cast<T*>(operator new[](size_ * sizeof(T)));
+      for (size_t i = 0; i < size_; ++i) {
+        if constexpr (std::is_nothrow_move_constructible_v<T>) {
+          new(&new_data[i]) T(move(data_[i]));
+        }
+        else {
+          new(&new_data[i]) T(data_[i]);
+        }
+        data_[i].~T();
       }
+      operator delete[](data_);
+      data_ = new_data;
+      capacity_ = size_;
     }
 
     // remove all elements and reduce size to 0; capacity remains unchanged
     void clear() noexcept {
-      delete[] data_;
-      data_ = nullptr;
+      for (size_t i = 0; i < size_; ++i) {
+        data_[i].~T();
+      }
       size_ = 0;
     }
 
     // add element to end of vector
     void push_back(const T& value) noexcept {
       if (size_ == capacity_) {
-        grow();
+        size_t new_cap = (capacity_ == 0) ? 1 : 2 * capacity_;
+        reserve(new_cap);
       }
-      data_[size_] = value;
+      new(&data_[size_]) T(value);
       ++size_;
     }
 
     template<typename... Args>
-    void emplace_back(Args&&... args) {
-      push_back(forward<Args>(args)...);
-    } 
-
+    reference emplace_back(Args... args) {
+      if (size_ == capacity_) {
+        size_t new_cap = (capacity_ == 0) ? 1 : 2 * capacity_;
+        reserve(new_cap);
+      }
+      new(&data_[size_]) T(forward<Args>(args)...);
+      return data_[size_++];
+    }
+    
     // remove element from end of vector
     void pop_back() noexcept {
       if (size_ > 0) {
         --size;
+        data_[size_].~T();
       }
     }
 
+    void resize(size_t count, const T& value = T{}) {
+      if (count == 0) return;
+      else if (count < size_) {
+        for (size_t i = count; i < size_; ++i) {
+          data_[i].~T();
+        }
+        size_ = count;
+      }
+      else {
+        reserve(count);
+        for (size_t i = size_; i < count; ++i) {
+          new(&data_[i]) T(value);
+        }
+        size_ = count;
+      }
+    }
+
+    void reserve(size_t new_cap) {
+      if (capacity_ >= new_cap) return;
+      T* new_data = static_cast<T*>(operator new[](new_cap * sizeof(T)));
+      for (size_t i = 0; i < size_; ++i) {
+        if constexpr (is_nothrow_move_constructible_v<T>) {
+          new(&new_data[i]) T(move(data_[i]));
+        }
+        else {
+          new(&new_data[i]) T(data_[i]);
+        }
+        data_[i].~T();
+      }
+      operator delete[](data_);
+      data_ = new_data;
+      capacity_ = new_cap;
+    }
+
     // swap with other vector
-    void swap(Vector& other) noexcept {
+    void swap(vector& other) noexcept {
       swap(data_, other.data_);
       swap(size_, other.size_);
       swap(capacity_, other.capacity_);
@@ -181,7 +271,7 @@ namespace karls_standard_library {
   };
 
   template<typename T, typename U>
-  bool operator==(const Vector<T>& lhs, const Vector<U>& rhs) {
+  bool operator==(const vector<T>& lhs, const vector<U>& rhs) {
     if (lhs.size() != rhs.size()) return false;
     else {
       for (size_t i = 0; i < lhs.size(); ++i) {
