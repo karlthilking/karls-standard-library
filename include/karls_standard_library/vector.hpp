@@ -160,6 +160,11 @@ namespace karls_standard_library {
       ++size_;
     }
 
+    template<typename... Args>
+    void emplace_back(Args&&... args) {
+      push_back(forward<Args>(args)...);
+    } 
+
     // remove element from end of vector
     void pop_back() noexcept {
       if (size_ > 0) {
