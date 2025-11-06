@@ -140,6 +140,7 @@ namespace karls_standard_library {
         size_ = exchange(other.size_, 0);
         capacity_ = exchange(other.capacity_, 0);
       }
+      return *this;
     }
 
     // true if vector is empty, false otherwise
