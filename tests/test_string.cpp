@@ -2,11 +2,12 @@
 #include <stdexcept>
 #include <gtest/gtest.h>
 #include "karls_standard_library/string.hpp"
-#include "karls_standard_library/initializer_list.hpp"
+#include "karls_standard_library/utility.hpp"
 
 using namespace karls_standard_library;
 
-class string_test : public testing::Test {
+class string_test : public testing::Test 
+{
 protected:
   void SetUp() override
   {
@@ -18,7 +19,7 @@ protected:
     string copied_from("copy me");
     string copy_constructed(copied_from);
     string moved_from("move me");
-    string move_constructed(moved_from);
+    string move_constructed(move(moved_from));
   }
   string default_constructed;
   string cstr_constructed;
@@ -43,6 +44,13 @@ TEST_F(string_test, cstr_constructor)
   EXPECT_TRUE(!cstr_constructed.empty());
   EXPECT_EQ(cstr_constructed.size(), 4);
   EXPECT_EQ(cstr_constructed.capacity(), 4);
+}
+
+TEST_F(string_test, cstr_fill_constructor)
+{
+  EXPECT_TRUE(!cstr_fill_constructed.empty());
+  EXPECT_EQ(cstr_fill_constructed.size(), 11);
+  EXPECT_EQ(cstr_fill_constructed.capacity(), 11);
 }
 
 int main()

@@ -2,7 +2,6 @@
 #define KARLS_STANDARD_LIBRARY_ARRAY_HPP
 
 #include "cstddef.hpp"
-#include "initializer_list.hpp"
 #include <stdexcept>
 
 namespace karls_standard_library {
@@ -15,7 +14,7 @@ namespace karls_standard_library {
     Array() = default;
 
     // brace initialization
-    Array(initializer_list<T> init) {
+    Array(std::initializer_list<T> init) {
       size_t i = 0;
       for (const T& value : init) {
         data_[i++] = value;

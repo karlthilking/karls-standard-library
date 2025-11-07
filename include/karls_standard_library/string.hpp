@@ -4,7 +4,6 @@
 #include "cstddef.hpp"
 #include "cstring.hpp"
 #include "utility.hpp"
-#include "initializer_list.hpp"
 #include "memory.hpp"
 #include "algorithm.hpp"
 #include <stdexcept>
