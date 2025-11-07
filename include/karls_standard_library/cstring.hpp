@@ -2,6 +2,7 @@
 #define KARLS_STANDARD_LIBRARY_CSTRING_HPP
 
 #include "cstddef.hpp"
+#include "algorithm.hpp"
 
 namespace karls_standard_library {
   // strlen method for constr char ptr
@@ -19,6 +20,26 @@ namespace karls_standard_library {
       d[i] = s[i];
     }
     return dest;
+  }
+
+  /*
+  If lhs appears before rhs in lexicographical order, return negative value
+  If lhs and rhs are equal, return 0
+  If lhs appears after rhs in lexicographical order, return positive value
+  */
+  int strcmp(const char* lhs, const char* rhs) {
+    if (!lhs || !rhs) {
+      if (lhs == rhs) return 0;
+      return (lhs) ? 1 : -1;
+    }
+    while (*lhs && *rhs && *lhs == *rhs) {
+      if (*lhs != *rhs) {
+        return static_cast<unsigned char>(*lhs) - static_cast<unsigned char>(*rhs);
+      }
+      ++lhs;
+      ++rhs;
+    }
+    return static_cast<unsigned char>(*lhs) - static_cast<unsigned char>(*rhs);
   }
 }
 
