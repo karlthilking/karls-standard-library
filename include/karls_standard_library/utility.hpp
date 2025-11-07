@@ -22,17 +22,24 @@ namespace karls_standard_library {
     return static_cast<T&&>(t);
   }
 
-  // swap function
+  // generalized swap function
   template<typename T>
-  void swap(T& a, T& b) noexcept(
-    is_nothrow_move_constructible_v<T> &&
-    is_nothrow_move_assignable_v<T>
-  )
+  void swap(T& a, T& b) noexcept(is_nothrow_move_constructible_v<T> && is_nothrow_move_assignable_v<T>)
   {
     T temp = move(a);
     a = move(b);
     b = move(temp);
   }
+
+  // array swap function
+  template<typename T, size_t N>
+  void swap(T (&a)[N], T (&b)[N]) noexcept(is_nothrow_swappable_v<T>)
+  {
+    T[N] temp = move(a);
+    a = move(b);
+    b = move(temp);
+  }
+
   // pair implementation
   template<typename T1, typename T2>
   struct Pair {
@@ -182,23 +189,15 @@ namespace karls_standard_library {
     return !(lhs < rhs);
   }
 
-
   // exchange function
   template<typename T, typename U = T>
   T exchange(T& obj, U&& new_value) 
-  noexcept(
-    is_nothrow_move_constructible_t<T>::value &&
-    is_nothrow_move_assignable_t<T&, U>::value
-  )
+  noexcept(is_nothrow_move_constructible_v<T> && is_nothrow_move_assignable_v<T&, U>)
   {
     T old_value = move(obj);
     obj = forward<U>(new_value);
     return old_value;
   }
-
-  template<typename T>
-  typename add_rvalue_reference<T>::type declval() noexcept;
-
 
   // algorithms
 
