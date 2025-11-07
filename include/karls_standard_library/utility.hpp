@@ -24,9 +24,16 @@ namespace karls_standard_library {
 
   // generalized swap function
   template<typename T>
-  void swap(T& a, T& b) noexcept(is_nothrow_move_constructible_v<T> && is_nothrow_move_assignable_v<T>)
+  void swap(T& a, T& b) noexcept
   {
     T temp = move(a);
+    a = move(b);
+    b = move(temp);
+  }
+
+  void swap(size_t a, size_t b) noexcept
+  {
+    size_t temp = move(a);
     a = move(b);
     b = move(temp);
   }

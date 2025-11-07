@@ -397,12 +397,12 @@ namespace karls_standard_library {
 
   template<typename T>
   struct enable_if<true, T> {
-    
+    using type = T;
   };
 
   // enable_if alias
   template<bool B, typename T>
-  using enable_if_t = enable
+  using enable_if_t = typename enable_if<B, T>::type;
 }
 
 
