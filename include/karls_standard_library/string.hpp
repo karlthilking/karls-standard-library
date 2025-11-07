@@ -24,6 +24,7 @@ namespace karls_standard_library {
   public:
     string_iterator(pointer ptr) : ptr_(ptr) {}
 
+    // increment operators
     string_iterator& operator++() 
     {
       ptr_++;
@@ -36,6 +37,7 @@ namespace karls_standard_library {
       return temp;
     }
 
+    // decrement operators
     string_iterator& operator--() 
     {
       ptr_--;
@@ -68,6 +70,7 @@ namespace karls_standard_library {
     size_t size_;
     size_t capacity_;
 
+    // delete char ptr and set capacity to 0
     void dealloc() 
     {
       if (data_) 
@@ -78,6 +81,7 @@ namespace karls_standard_library {
       capacity_ = 0;
     }
     
+    // templated helper swap function
     template<typename T>
     void swap(T& a, T& b)
     {
@@ -89,7 +93,7 @@ namespace karls_standard_library {
     // default constructor
     string() : data_(nullptr), size_(0), capacity_(0) {}
     
-    // desctructor
+    // destructor
     ~string() 
     {
       clear();
@@ -212,7 +216,6 @@ namespace karls_standard_library {
     iterator begin() { return data_; }
     const_iterator begin() const { return data_; }
     const_iterator cbegin() const { return data_; }
-
     iterator end() { return data_ + size_; }
     const_iterator end() const { return data_ + size_; }
     const_iterator cend() { return data_ + size_; }
@@ -223,6 +226,7 @@ namespace karls_standard_library {
     size_t length() const noexcept { return size_; }
     size_t capacity() const noexcept { return capacity_; }
 
+    // reserve new capacity
     void reserve(size_t new_cap) 
     {
       if (capacity_ >= new_cap) return;
@@ -236,6 +240,7 @@ namespace karls_standard_library {
       capacity_ = new_cap;
     }
 
+    // decrease capacity to size
     void shrink_to_fit() noexcept 
     {
       if (size_ == capacity_) return;
@@ -256,6 +261,7 @@ namespace karls_standard_library {
       size_ = 0;
     }
 
+    // append a single char to end of string
     void push_back(char& c) 
     {
       if (size_ == capacity_) 
@@ -265,6 +271,7 @@ namespace karls_standard_library {
       }
       data_[size_++] = c;
     }
+    // pop last char from string
     void pop_back() 
     {
       if (size_ > 0) 
@@ -318,6 +325,7 @@ namespace karls_standard_library {
       size_ = new_size;
       return *this;
     }
+    // append other string to end of string
     string& append(const string& str) 
     {
       size_t new_size = size_ + str.size_;
@@ -330,6 +338,7 @@ namespace karls_standard_library {
       size_ = new_size;
       return *this;
     }
+    // append initializer list of chars to end of string
     string& append(initializer_list<char> list) 
     {
       size_t new_size = size_ + list.size();
@@ -370,6 +379,7 @@ namespace karls_standard_library {
       data_[size_++] = c;
       return *this;
     }
+    // append all chars of const char pointer to string
     string& operator+=(const char* str) 
     {
       if (strlen(str) > 0) 
@@ -385,6 +395,7 @@ namespace karls_standard_library {
       }
       return *this;
     }
+    // append init list to end of string
     string& operator+=(initializer_list<char> list) 
     {
       if (list.size() > 0) 
@@ -400,7 +411,9 @@ namespace karls_standard_library {
       return *this;
     }
 
+    // delegate resize function without speicifed value to other with default constructor
     void resize(size_t count) { resize(count, char{}); }
+    // resize the string to count size; appends c to end if count > size
     void resize(size_t count, char c) 
     {
       if (size_ == count) return;
