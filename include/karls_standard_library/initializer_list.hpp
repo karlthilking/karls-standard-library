@@ -16,7 +16,7 @@ namespace karls_standard_library {
     using const_reference = const T&;
     using size_type = size_t;
     using iterator = const T*;
-    using const iterator = const T*;
+    using const_iterator = const T*;
 
     // default constructor
     initializer_list() noexcept : m_ptr(nullptr), size_(0) {}

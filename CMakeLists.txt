@@ -1,9 +1,20 @@
 cmake_minimum_required(VERSION 3.15)
-project(MiniSTL VERSION 1.0.0 LANGUAGES CXX)
+project(karls-stl)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG v1.15.2
+  DOWNLOAD_EXTRACT_TIMESTAMP true
+)
+
+FetchContent_MakeAvailable(googletest)
 
 if(MSVC)
     add_compile_options(/W4)
@@ -17,12 +28,13 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 add_library(karls_standard_library INTERFACE)
 
 target_include_directories(karls_standard_library INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        $<INSTALL_INTERFACE:.>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
 )
+
+
+enable_testing()
+include(GoogleTest)
 
 add_subdirectory(tests)
 add_subdirectory(examples)
-
-enable_testing()
-add_test(NAME karls_standard_library_tests COMMAND test_my_standard_library)

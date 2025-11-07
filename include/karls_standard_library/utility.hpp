@@ -1,25 +1,34 @@
 #ifndef KARLS_STANDARD_LIBRARY_UTILITY_HPP
 #define KARLS_STANDARD_LIBRARY_UTILITY_HPP
 
-#include "type_traits.hpp"
+#include <type_traits>
 
 namespace karls_standard_library {
   // move semantics
   template<typename T>
-  constexpr remove_reference<T>&& move(T&& t) noexcept {
-    return static_cast<remove_reference_t<T>&&>(t);
+  constexpr std::remove_reference_t<T>&& move(T&& t) noexcept {
+    return static_cast<std::remove_reference_t<T>&&>(t);
   }
 
   // forward
   template<typename T>
-  constexpr T&& forward(remove_reference_t<T>& t) noexcept {
+  constexpr T&& forward(std::remove_reference_t<T>& t) noexcept {
     return static_cast<T&&>(t);
   }
 
   template<typename T>
-  constexpr T&& forward(remove_reference_t<T>&& t) noexcept {
-    static_assert(!is_lvalue_reference_v<T>);
+  constexpr T&& forward(std::remove_reference_t<T>&& t) noexcept {
+    static_assert(!std::is_lvalue_reference_v<T>);
     return static_cast<T&&>(t);
+  }
+
+  template<typename T, typename U = T>
+  constexpr T exchange(T& obj, U&& new_value) 
+  noexcept(std::is_nothrow_move_constructible_v<T> && std::is_nothrow_move_assignable<T&, U>::value)
+  {
+    T old = move(obj);
+    obj = static_cast<U&&>(new_value);
+    return old;
   }
 
   // generalized swap function
@@ -31,18 +40,11 @@ namespace karls_standard_library {
     b = move(temp);
   }
 
-  void swap(size_t a, size_t b) noexcept
-  {
-    size_t temp = move(a);
-    a = move(b);
-    b = move(temp);
-  }
-
   // array swap function
   template<typename T, size_t N>
-  void swap(T (&a)[N], T (&b)[N]) noexcept(is_nothrow_swappable_v<T>)
+  void swap(T (&a)[N], T (&b)[N]) noexcept
   {
-    T[N] temp = move(a);
+    T temp[N] = move(a);
     a = move(b);
     b = move(temp);
   }
@@ -59,7 +61,8 @@ namespace karls_standard_library {
 
     // perfect forwarding
     template<typename U1, typename U2>
-    Pair(U1&& x, U2&& y) {
+    Pair(U1&& x, U2&& y) 
+    {
       first = forward<U1>(x);
       second = forward<U2>(y);
     }
@@ -79,8 +82,10 @@ namespace karls_standard_library {
     Pair(Pair<U1, U2>&& p) : first(move(p.first)), second(move(p.second)) {}
 
     // copy assignment operator
-    Pair& operator=(const Pair<T1, T2>& p) {
-      if (this != *p) {
+    Pair& operator=(const Pair<T1, T2>& p) 
+    {
+      if (this != *p) 
+      {
         first = p.first;
         second = p.second;
       }
@@ -88,8 +93,7 @@ namespace karls_standard_library {
     }
 
     // move assignment operator
-    Pair& operator=(Pair<T1, T2>&& p)
-    noexcept(is_nothrow_move_assignable_v<T1> && is_no_throw_move_assignable_v<T2>)
+    Pair& operator=(Pair<T1, T2>&& p) noexcept 
     {
       first = move(p.first);
       second = move(p.second);
@@ -98,112 +102,123 @@ namespace karls_standard_library {
 
     // converting copy assignment operator
     template<typename U1, typename U2>
-    enable_if_t<!is_same_v<Pair<U1, U2>, Pair<T1, T2>>, &Pair>
-    operator=(const Pair<U1, U2>& p) {
+    std::enable_if_t<!std::is_same_v<Pair<U1, U2>, Pair<T1, T2>>, Pair&>
+    operator=(const Pair<U1, U2>& p) 
+    {
       first = p.first;
       second = p.second;
+      return *this;
     }
 
     // converting move assignment operator
     template<typename U1, typename U2>
-    enable_if_t<!is_same_v<Pair<U1, U2>, Pair<T1, T2>>, &Pair>
-    operator=(Pair<U1, U2>&& p) {
+    std::enable_if_t<!std::is_same_v<Pair<U1, U2>, Pair<T1, T2>>, Pair&>
+    operator=(Pair<U1, U2>&& p) 
+    {
       first = move(p.first);
       second = move(p.second);
+      return *this;
     }
 
     // member swap
-    void swap(Pair& p) noexcept {
+    void swap(Pair& p) noexcept 
+    {
       swap(first, p.first);
       swap(second, p.second);
     }
 
     // equality/inequality ==, !=
     template<typename U1, typename U2>
-    bool operator==(const Pair<U1, U2>& p) {
+    bool operator==(const Pair<U1, U2>& p) 
+    {
       return first == p.first && second == p.second;
     }
 
     template<typename U1, typename U2>
-    bool operator!=(const Pair<U1, U2>& p) {
+    bool operator!=(const Pair<U1, U2>& p) 
+    {
       return !(*this == p);
     }
 
     // ordering operators <, <=, >, >=
     template<typename U1, typename U2>
-    bool operator<(const Pair<U1, U2>& p) {
+    bool operator<(const Pair<U1, U2>& p) 
+    {
       return first < p.first || !(first > p.first) && second < p.second;
     }
 
     template<typename U1, typename U2>
-    bool operator<=(const Pair<U1, U2>& p) {
+    bool operator<=(const Pair<U1, U2>& p) 
+    {
       return !(p < *this);
     }
 
     template<typename U1, typename U2>
-    bool operator>(const Pair<U1, U2>& p) {
+    bool operator>(const Pair<U1, U2>& p) 
+    {
       return !(*this <= p);
     }
 
     template<typename U1, typename U2>
-    bool operator>=(const Pair<U1, U2>& p) {
+    bool operator>=(const Pair<U1, U2>& p) 
+    {
       return !(*this < p);
     }
   };
 
   // make_pair non-member function
   template<typename T1, typename T2>
-  constexpr Pair<decay_t<T1>, decay_t<T2>> make_pair(T1&& x, T2&& y) {
-    return Pair<decay_t<T1>, decay_t<T2>>(forward(x), forward(y));
+  constexpr Pair<std::decay_t<T1>, std::decay_t<T2>> make_pair(T1&& x, T2&& y) 
+  {
+    return Pair<std::decay_t<T1>, std::decay_t<T2>>(forward(x), forward(y));
   }
 
   // non-member pair swap
   template<typename T1, typename T2, typename U1, typename U2>
-  void swap(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) {
+  void swap(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) 
+  {
     lhs.swap(rhs);
   }
 
   // non-member pair equality and inequality checks
   template<typename T1, typename T2, typename U1, typename U2>
-  bool operator==(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) {
+  bool operator==(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) 
+  {
     return lhs.first == rhs.first && lhs.second == rhs.second;
   }
   template<typename T1, typename T2, typename U1, typename U2>
-  bool operator!=(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) {
+  bool operator!=(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) 
+  {
     return !(lhs == rhs);
   }
 
   // non-member pair ordering operators
   template<typename T1, typename T2, typename U1, typename U2>
-  bool operator<(const Pair<T1, T2>& lhs, const Pair<U2, U2>& rhs) {
-    if (lhs.first != rhs.first) {
+  bool operator<(const Pair<T1, T2>& lhs, const Pair<U2, U2>& rhs) 
+  {
+    if (lhs.first != rhs.first) 
+    {
       return lhs.first < rhs.first;
     }
-    else {
+    else 
+    {
       return lhs.second < rhs.second;
     }
   }
   template<typename T1, typename T2, typename U1, typename U2>
-  bool operator<=(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) {
+  bool operator<=(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) 
+  {
     return !(rhs < lhs);
   }
   template<typename T1, typename T2, typename U1, typename U2>
-  bool operator>(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) {
+  bool operator>(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) 
+  {
     return rhs < lhs;
   }
   template<typename T1, typename T2, typename U1, typename U2>
-  bool operator>=(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) {
-    return !(lhs < rhs);
-  }
-
-  // exchange function
-  template<typename T, typename U = T>
-  T exchange(T& obj, U&& new_value) 
-  noexcept(is_nothrow_move_constructible_v<T> && is_nothrow_assignable_v<T&, U>)
+  bool operator>=(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) 
   {
-    T old_value = move(obj);
-    obj = forward<U>(new_value);
-    return old_value;
+    return !(lhs < rhs);
   }
 
   // algorithms

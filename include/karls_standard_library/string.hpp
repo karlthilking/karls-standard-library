@@ -4,7 +4,6 @@
 #include "cstddef.hpp"
 #include "cstring.hpp"
 #include "utility.hpp"
-#include "type_traits.hpp"
 #include "initializer_list.hpp"
 #include "memory.hpp"
 #include "algorithm.hpp"
@@ -137,7 +136,7 @@ namespace karls_standard_library {
       }
     
     // initializer list constructor
-    string(initializer_list<char> init) : 
+    string(std::initializer_list<char> init) : 
       data_(nullptr), size_(init.size()), capacity_(init.size())
       {
         if (size_ > 0) 
@@ -339,7 +338,7 @@ namespace karls_standard_library {
       return *this;
     }
     // append initializer list of chars to end of string
-    string& append(initializer_list<char> list) 
+    string& append(std::initializer_list<char> list) 
     {
       size_t new_size = size_ + list.size();
       if (new_size > capacity_) 
@@ -396,7 +395,7 @@ namespace karls_standard_library {
       return *this;
     }
     // append init list to end of string
-    string& operator+=(initializer_list<char> list) 
+    string& operator+=(std::initializer_list<char> list) 
     {
       if (list.size() > 0) 
       {

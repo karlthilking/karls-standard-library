@@ -8,7 +8,7 @@ namespace karls_standard_library {
   template<typename vector>
   class vector_iterator {
   public:
-    using value_type = vector::value_type;
+    using value_type = typename vector::value_type;
     using pointer = value_type*;
     using reference = value_type&;
   private:
@@ -53,15 +53,15 @@ namespace karls_standard_library {
     using reference = T&;
     using const_reference = const value_type&;
     using iterator = vector_iterator<vector<T>>;
-    using const_iterator = const vector_iterator<Vector<T>>;
+    using const_iterator = const vector_iterator<vector<T>>;
 
     iterator begin() { return data_; }
     const_iterator begin() const { return data_; }
     const_iterator cbegin() const { return data_; }
 
     iterator end() { return data_ + size_; }
-    const_iterator end() { return data_ + size_; }
-    const_iterator cend() { return data_ + size_; }
+    const_iterator end() const { return data_ + size_; }
+    const_iterator cend() const { return data_ + size_; }
   private:
     T* data_;
     size_t size_;
@@ -91,7 +91,7 @@ namespace karls_standard_library {
     }
 
     // list initialization
-    vector(initializer_list<T> init) :
+    vector(std::initializer_list<T> init) :
       data_(nullptr), size_(init.size()), capacity_(init.size())
     {
       if (size_ > 0) {
@@ -135,7 +135,7 @@ namespace karls_standard_library {
     vector& operator=(vector&& other) {
       if (this != &other) {
         clear();
-        operator delete[] data_;
+        operator delete[](data_);
         data_ = exchange(other.data_, nullptr);
         size_ = exchange(other.size_, 0);
         capacity_ = exchange(other.capacity_, 0);
@@ -176,8 +176,15 @@ namespace karls_standard_library {
 
     // remove unused capacity
     void shrink_to_fit() noexcept {
-      if (size_ == capacity_) return;
-      else if (size_ == 0) dealloc; return;
+      if (size_ == capacity_) 
+      {
+        return;
+      }
+      else if (size_ == 0)
+      {
+        dealloc();
+        return;
+      }
       T* new_data = static_cast<T*>(operator new[](size_ * sizeof(T)));
       for (size_t i = 0; i < size_; ++i) {
         if constexpr (std::is_nothrow_move_constructible_v<T>) {
@@ -251,7 +258,7 @@ namespace karls_standard_library {
       if (capacity_ >= new_cap) return;
       T* new_data = static_cast<T*>(operator new[](new_cap * sizeof(T)));
       for (size_t i = 0; i < size_; ++i) {
-        if constexpr (is_nothrow_move_constructible_v<T>) {
+        if constexpr (std::is_nothrow_move_constructible_v<T>) {
           new(&new_data[i]) T(move(data_[i]));
         }
         else {
