@@ -2,6 +2,7 @@
 #define KARLS_STANDARD_LIBRARY_VECTOR_HPP
 
 #include <stdexcept>
+#include <memory>
 #include "utility.hpp"
 
 namespace karls_standard_library {
@@ -67,6 +68,15 @@ namespace karls_standard_library {
     size_t size_;
     size_t capacity_;
 
+    // helper swap function
+    template<typename U>
+    void swap(U& a, U& b)
+    {
+      U temp = a;
+      a = b;
+      b = temp;
+    }
+
     void dealloc() {
       if (data_) {
         operator delete[](data_);
@@ -78,15 +88,21 @@ namespace karls_standard_library {
     // default constructor
     vector() : data_(nullptr), size_(0), capacity_(0) {}
 
+    // destructor
+    ~vector()
+    {
+      clear();
+      dealloc();
+    }
+
     // initial size and capacity, optional initial value
     explicit vector(size_t count, const T& value = T{}) :
       data_(nullptr), size_(count), capacity_(count)
     {
-      if (size_ > 0) {
-        data_ = static_cast<T*>(operator new[](capacity_ * sizeof(T)));
-        for (size_t i = 0; i < size_; ++i) {
-          data_[i] = value;
-        }
+      if (count > 0)
+      {
+        data_ = static_cast<T*>(operator new[](count * sizeof(T)));
+        std::uninitialized_fill_n(data_, count, value);
       }
     }
 
@@ -104,11 +120,9 @@ namespace karls_standard_library {
     vector(const vector& other) : 
       data_(nullptr), size_(other.size_), capacity_(other.capacity_)
     {
-      if (size_ > 0) {
+      if (capacity_ > 0) {
         data_ = static_cast<T*>(operator new[](capacity_ * sizeof(T)));
-        for (size_t i = 0; i < other.size_; ++i) {
-          data_[i] = other.data_[i];
-        }
+        std::uninitialized_copy(other.data_, other.data_ + size_, data_);
       }
     }
 
@@ -227,7 +241,7 @@ namespace karls_standard_library {
     // remove element from end of vector
     void pop_back() noexcept {
       if (size_ > 0) {
-        --size;
+        --size_;
         data_[size_].~T();
       }
     }

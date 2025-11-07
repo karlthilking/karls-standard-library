@@ -71,11 +71,8 @@ namespace karls_standard_library {
     // delete char ptr and set capacity to 0
     void dealloc() 
     {
-      if (data_) 
-      {
-        delete[] data_;
-        data_ = nullptr;
-      }
+      delete[] data_;
+      data_ = nullptr;
       capacity_ = 0;
     }
     
@@ -99,24 +96,23 @@ namespace karls_standard_library {
     }
 
     // cstring constructor
-    string(const char* str) :
-      data_(nullptr), size_(strlen(str)), capacity_(strlen(str))
+    string(const char* str)
+      : data_(nullptr), size_(strlen(str)), capacity_(strlen(str) + 1)
+    {
+      if (size_ > 0)
       {
-        if (str != nullptr && size_ > 0) 
-        {
-          data_ = new char[capacity_];
-          memcpy(data_, str, size_);
-        }
+        data_ = new char[capacity_];
+        memcpy(data_, str, size_);
       }
-
+    }
     // cstring fill constructor
     string(const char* str, size_t count) :
       data_(nullptr), size_(count), capacity_(count)
       {
-        if (str != nullptr && count > 0) 
+        if (count > 0 && str != nullptr)
         {
           data_ = new char[capacity_];
-          memcpy(data_, str, count);
+          memcpy(data_, str, size_);
         }
       }
     
@@ -127,7 +123,7 @@ namespace karls_standard_library {
         if (size_ > 0) 
         {
           data_ = new char[capacity_];
-          for (size_t i = 0; i < size_; ++i) 
+          for (size_t i = 0; i < size_; ++i)
           {
             data_[i] = c;
           }
@@ -152,10 +148,7 @@ namespace karls_standard_library {
         if (size_ > 0) 
         {
           data_ = new char[capacity_];
-          for (size_t i = 0; i < size_; ++i) 
-          {
-            data_[i] = other.data_[i];
-          }
+          memcpy(data_, other.data_, size_);
         }
       }
 
@@ -182,7 +175,7 @@ namespace karls_standard_library {
       if (this != &other) 
       {
         clear();
-        delete[] data_;
+        dealloc();
         data_ = exchange(other.data_, nullptr);
         size_ = exchange(other.size_, 0);
         capacity_ = exchange(other.capacity_, 0);
@@ -303,10 +296,7 @@ namespace karls_standard_library {
         size_t new_cap = max(new_size, 2 * capacity_);
         reserve(new_cap);
       }
-      for (size_t i = 0; i < count; ++i) 
-      {
-        data_[size_ + i] = str[i];
-      }
+      memcpy(data_ + size_, str, count);
       size_ = new_size;
       return *this;
     }
@@ -353,17 +343,14 @@ namespace karls_standard_library {
     // append another string object to end of string
     string& operator+=(const string& str) 
     {
-      if (!str.empty())
+      size_t new_size = size_ + str.size_;
+      if (new_size > capacity_)
       {
-        size_t new_size = str.length() + size_;
-        if (new_size > capacity_) 
-        {
-          size_t new_cap = std::max(2 * capacity_, new_size);
-          reserve(new_cap);
-        }
-        memcpy(data_ + size_, str.data_, str.length());
-        size_ = new_size;
+        size_t new_cap = max(2 * capacity_, new_size);
+        reserve(new_cap);
       }
+      memcpy(data_ + size_, str.data_, str.size_);
+      size_ = new_size;
       return *this;
     }
     // append char to end of string
@@ -380,32 +367,26 @@ namespace karls_standard_library {
     // append all chars of const char pointer to string
     string& operator+=(const char* str) 
     {
-      if (strlen(str) > 0) 
+      size_t new_size = size_ + strlen(str);
+      if (new_size > capacity_)
       {
-        size_t new_size = size_ + strlen(str);
-        if (new_size > capacity_) 
-        {
-          size_t new_cap = std::max(2 * capacity_, new_size);
-          reserve(new_cap);
-        }
-        memcpy(data_ + size_, str, strlen(str));
-        size_ = new_size;
+        size_t new_cap = max(2 * capacity_, new_size);
+        reserve(new_cap);
       }
+      memcpy(data_ + size_, str, strlen(str));
+      size_ = new_size;
       return *this;
     }
     // append init list to end of string
     string& operator+=(std::initializer_list<char> list) 
     {
-      if (list.size() > 0) 
+      size_t new_size = size_ + list.size();
+      if (new_size > capacity_)
       {
-        size_t new_size = size_ + list.size();
-        if (new_size > capacity_) 
-        {
-          size_t new_cap = std::max(2 * capacity_, new_size);
-          reserve(new_cap);
-        }
-        std::uninitialized_copy(list.begin(), list.end(), data_ + size_);
-      } 
+        size_t new_cap = max(2 * capacity_, new_size);
+        reserve(new_cap); 
+      }
+      std::uninitialized_copy(list.begin(), list.end(), data_ + size_);
       return *this;
     }
 
@@ -421,11 +402,11 @@ namespace karls_standard_library {
       }
       else
       {
-        reserve(count);
-        for (size_t i = size_; i < count; ++i) 
-        {
-          data_[i] = c;
-        }
+        char* new_data = new char[count];
+        memcpy(new_data, data_, size_);
+        std::uninitialized_fill(new_data + size_, new_data + count, c);
+        delete[] data_;
+        data_ = new_data;
         size_ = count;
       }
     }
@@ -455,7 +436,18 @@ namespace karls_standard_library {
 
   // non-member comparison
   inline bool operator==(const string& lhs, const string& rhs) {
-    return strcmp(lhs.data(), rhs.data()) == 0;
+    if (lhs.size() != rhs.size())
+    {
+      return false;
+    }
+    for (size_t i = 0; i < lhs.size(); ++i)
+    {
+      if (lhs[i] != rhs[i])
+      {
+        return false;
+      }
+    }
+    return true;
   }
   inline bool operator!=(const string& lhs, const string& rhs) {
     return !(lhs == rhs);
