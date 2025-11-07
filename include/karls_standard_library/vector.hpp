@@ -53,7 +53,7 @@ namespace karls_standard_library {
     using reference = T&;
     using const_reference = const value_type&;
     using iterator = vector_iterator<vector<T>>;
-    using const_iterator = cosnt vector_iterator<Vector<T>>;
+    using const_iterator = const vector_iterator<Vector<T>>;
 
     iterator begin() { return data_; }
     const_iterator begin() const { return data_; }
@@ -229,7 +229,8 @@ namespace karls_standard_library {
       }
     }
 
-    void resize(size_t count, const T& value = T{}) {
+    void resize(size_t count) { resize(count, T{}); }
+    void resize(size_t count, const T& value) {
       if (count == 0) return;
       else if (count < size_) {
         for (size_t i = count; i < size_; ++i) {

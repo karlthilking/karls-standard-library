@@ -5,7 +5,7 @@ namespace karls_standard_library {
   template<typename T>
   class initializer_list {
   private:
-    T* m_ptr;
+    const T* m_ptr;
     size_t size_;
 
     // private constructor

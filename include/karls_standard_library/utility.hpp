@@ -53,8 +53,8 @@ namespace karls_standard_library {
     // perfect forwarding
     template<typename U1, typename U2>
     Pair(U1&& x, U2&& y) {
-      first = forward(x),
-      second = forward(y)
+      first = forward<U1>(x);
+      second = forward<U2>(y);
     }
 
     // copy constructor
@@ -114,7 +114,7 @@ namespace karls_standard_library {
     // equality/inequality ==, !=
     template<typename U1, typename U2>
     bool operator==(const Pair<U1, U2>& p) {
-      return first = p.first && second == p.second;
+      return first == p.first && second == p.second;
     }
 
     template<typename U1, typename U2>
@@ -192,7 +192,7 @@ namespace karls_standard_library {
   // exchange function
   template<typename T, typename U = T>
   T exchange(T& obj, U&& new_value) 
-  noexcept(is_nothrow_move_constructible_v<T> && is_nothrow_move_assignable_v<T&, U>)
+  noexcept(is_nothrow_move_constructible_v<T> && is_nothrow_assignable_v<T&, U>)
   {
     T old_value = move(obj);
     obj = forward<U>(new_value);

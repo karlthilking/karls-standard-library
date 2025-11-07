@@ -15,7 +15,7 @@ namespace karls_standard_library {
     Array() = default;
 
     // brace initialization
-    Array(intializer_list<T> init) {
+    Array(initializer_list<T> init) {
       size_t i = 0;
       for (const T& value : init) {
         data_[i++] = value;
