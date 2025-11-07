@@ -4,42 +4,6 @@
 #include "cstddef.hpp"
 
 namespace karls_standard_library {
-  // primary default delete
-  template<typename T>
-  struct default_delete {
-    // default constructor
-    constexpr default_delete() noexcept = default;
-
-    // allow conversion from default_delete<U> to default_delete<T>
-    // if U* can be converted to T*
-    template<typename U>
-    default_delete(const default_delete<U>&) noexcept {}
-
-    // function call operator
-    void operator()(T* ptr) const {
-      static_assert(!is_void_v<T>);
-      static_assert(sizeof(T) > 0);
-      delete ptr;
-    }
-  };
-
-  // default delete for arrays
-  template<typename T>
-  struct default_delete<T[]> {
-    // default constructor
-    constexpr default_delete<T[]>() noexcept = default;
-
-    // conversion
-    template<typename U>
-    default_delete(const default_delete<U[]>&) noexcept {}
-
-    // function call operator
-    void operator()(T* ptr) const {
-      static_assert(sizeof(T) > 0);
-      delete[] ptr;
-    }
-  };
-
   template<typename T>
   class unique_ptr {
   private:
@@ -158,11 +122,14 @@ namespace karls_standard_library {
     }
 
     // reset the underlying pointer to a new pointer
-    void reset(T* new) noexcept
+    void reset(T* new_ptr) noexcept
     {
       T* old = m_ptr;
-      m_ptr = new;
-      if (old) delete old;
+      m_ptr = new_ptr;
+      if (old)
+      {
+        delete old;
+      } 
     }
 
     // swap underlying pointer with other unique_ptr

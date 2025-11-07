@@ -96,11 +96,7 @@ namespace karls_standard_library {
     {
       if (size_ > 0) {
         data_ = static_cast<T*>(operator new[](capacity_ * sizeof(T)));
-        size_t i = 0;
-        for (const T& value : init) {
-          data_[i] = value;
-          ++i;
-        }
+        std::uninitialized_copy(init.begin(), init.end(), data_);
       }
     }
 
@@ -166,11 +162,11 @@ namespace karls_standard_library {
 
     // index into the vector with bounds checking
     T& at(size_t index) {
-      if (index >= size) throw std::out_of_range("Index out of bounds"); 
+      if (index >= size_) throw std::out_of_range("Index out of bounds"); 
       return data_[index];
     }
     const T& at(size_t index) const {
-      if (index >= size) throw std::out_of_range("Index out of bounds");
+      if (index >= size_) throw std::out_of_range("Index out of bounds");
       return data_[index];
     }
 

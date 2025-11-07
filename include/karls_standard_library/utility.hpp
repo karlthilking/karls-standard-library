@@ -24,7 +24,7 @@ namespace karls_standard_library {
 
   template<typename T, typename U = T>
   constexpr T exchange(T& obj, U&& new_value) 
-  noexcept(std::is_nothrow_move_constructible_v<T> && std::is_nothrow_move_assignable<T&, U>::value)
+  noexcept(std::is_nothrow_move_constructible_v<T> && std::is_nothrow_move_assignable<U>::value)
   {
     T old = move(obj);
     obj = static_cast<U&&>(new_value);

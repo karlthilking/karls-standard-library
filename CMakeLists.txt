@@ -13,7 +13,6 @@ FetchContent_Declare(
   GIT_TAG v1.15.2
   DOWNLOAD_EXTRACT_TIMESTAMP true
 )
-
 FetchContent_MakeAvailable(googletest)
 
 if(MSVC)
@@ -26,15 +25,15 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
 add_library(karls_standard_library INTERFACE)
-
 target_include_directories(karls_standard_library INTERFACE
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 
-
+# Enable testing
 enable_testing()
 include(GoogleTest)
 
+# Add subdirectories
 add_subdirectory(tests)
 add_subdirectory(examples)

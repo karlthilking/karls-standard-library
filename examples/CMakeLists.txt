@@ -1,8 +1,11 @@
-add_executable(basic_demo basic_demo.cpp)
-target_link_libraries(basic_demo karls_standard_library)
-
 add_executable(algorithms_demo algorithms_demo.cpp)
 target_link_libraries(algorithms_demo karls_standard_library)
+target_include_directories(algorithms_demo PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+add_executable(basic_demo basic_demo.cpp)
+target_link_libraries(basic_demo karls_standard_library)
+target_include_directories(basic_demo PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 add_executable(performance_comparison performance_comparison.cpp)
 target_link_libraries(performance_comparison karls_standard_library)
+target_include_directories(performance_comparison PRIVATE ${CMAKE_SOURCE_DIR}/include)

@@ -454,27 +454,27 @@ namespace karls_standard_library {
   };
 
   // non-member comparison
-  bool operator==(const string& lhs, const string& rhs) {
+  inline bool operator==(const string& lhs, const string& rhs) {
     return strcmp(lhs.data(), rhs.data()) == 0;
   }
-  bool operator!=(const string& lhs, const string& rhs) {
+  inline bool operator!=(const string& lhs, const string& rhs) {
     return !(lhs == rhs);
   }
-  bool operator==(const string& lhs, const char* rhs) {
+  inline bool operator==(const string& lhs, const char* rhs) {
     return strcmp(lhs.data(), rhs) == 0;
   }
-  bool operator!=(const string& lhs, const char* rhs) {
+  inline bool operator!=(const string& lhs, const char* rhs) {
     return !(lhs == rhs);
   }
-  bool operator==(const char* lhs, const string& rhs) {
+  inline bool operator==(const char* lhs, const string& rhs) {
     return rhs == lhs;
   }
-  bool operator!=(const char* lhs, const string& rhs) {
+  inline bool operator!=(const char* lhs, const string& rhs) {
     return !(lhs == rhs);
   }
 
   // non-member function for output stream
-  std::ostream& operator<<(std::ostream& os, const string& str) 
+  inline std::ostream& operator<<(std::ostream& os, const string& str) 
   {
     if (str.data_ && str.size_ > 0) 
     {
@@ -486,7 +486,7 @@ namespace karls_standard_library {
     return os;
   }
   // non-member function for input stream
-  std::istream& operator>>(std::istream& is, string& str) 
+  inline std::istream& operator>>(std::istream& is, string& str) 
   {
     char buffer[1000];
     is >> buffer;
