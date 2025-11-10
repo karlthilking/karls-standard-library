@@ -3,179 +3,192 @@
 
 #include "cstddef.hpp"
 
-namespace karls_standard_library {
+namespace karls_standard_library
+{
   template<typename T>
-  class unique_ptr {
+  class unique_ptr
+  {
+  public:
+    using value_type = T;
+    using pointer = value_type*;
   private:
-    // underlying pointer
-    T* m_ptr;
+    T* data_;
   public:
     // default constructor
-    unique_ptr() : m_ptr(nullptr) {}
+    constexpr unique_ptr() noexcept : data_(nullptr) {}
 
-    // destructor
-    ~unique_ptr() noexcept { delete m_ptr; }
+    // destructor 
+    ~unique_ptr() { delete data_; }
 
-    // raw pointer construction
-    explicit unique_ptr(T* ptr) : m_ptr(ptr) {}
-
-    // copy constructor (delete)
-    unique_ptr(const unique_ptr& other) = delete;
-
-    // copy assignment operator (delete)
-    unique_ptr& operator=(const unique_ptr& other) = delete;
-
-    // move constructor
-    unique_ptr(unique_ptr&& other) noexcept : m_ptr(other.release()) {}
-
-    // move assignment operator
-    unique_ptr& operator=(unique_ptr&& other) {
-      if (this != &other) {
-        delete m_ptr;
-        m_ptr = other.release();
-      }
+    // nullptr constructor and assignment operator
+    constexpr unique_ptr(nullptr_t) : data_(nullptr) {}
+    unique_ptr& operator=(nullptr_t)
+    {
+      delete data_;
+      data_ = nullptr;
       return *this;
     }
 
-    // release ownership of underlying pointer
-    T* release() noexcept {
-      T* old = m_ptr;
-      m_ptr = nullptr;
-      return old;
-    }
-
-    // take ownership of new ptr, delete original ptr
-    void reset(T* ptr) noexcept {
-      T* old = m_ptr;
-      m_ptr = ptr;
-      if (old) {
-        delete old;
-      }
-    }
-
-    // check if m_ptr owns anything
-    explicit operator bool() const noexcept {
-      return static_cast<bool>(m_ptr);
-    }
-
-    // return underlying pointer
-    T* get() const noexcept { return m_ptr; }
-
-    // arrow operator
-    T* operator->() const noexcept { return m_ptr; }
-
-    // dereference operator
-    T& operator*() const noexcept { return *m_ptr; }
-  };
-
-  template<typename T>
-  class unique_ptr<T[]> {
-  private:
-    T* m_ptr;
-  public:
-    // default constructor
-    constexpr unique_ptr() noexcept : m_ptr(nullptr) {}
-
-    // nullptr constructor
-    constexpr unique_ptr(nullptr_t) noexcept : m_ptr(nullptr) {}
-
-    // destructor 
-    ~unique_ptr() noexcept { delete[] m_ptr; }
-
-    // constructor with raw pointer
-    explicit unique_ptr(T* ptr) : m_ptr(ptr) {}
-
-    // copy constructor (delete)
+    // copy constructor and assignment operator
     unique_ptr(const unique_ptr& other) = delete;
-
-    // copy assignment (delete)
     unique_ptr& operator=(const unique_ptr& other) = delete;
 
-    // move constructor
-    unique_ptr(unique_ptr&& other) noexcept : m_ptr(other.release()) {}
+    // raw pointer constructor
+    explicit unique_ptr(pointer p) : data_(p) {}
 
-    // move assignment operator
-    unique_ptr& operator=(unique_ptr&& other)
+    // move constructor and assignment operator
+    unique_ptr(unique_ptr&& other) noexcept : data_(other.release()) {}
+    unique_ptr& operator=(unique_ptr&& other) noexcept
     {
       if (this != &other)
       {
-        delete m_ptr;
-        m_ptr = other.release();
+        reset(other.release());
       }
       return *this;
     }
 
-    // nullptr assignment
-    unique_ptr& operator=(nullptr_t np)
+    // modifiers
+    pointer release() noexcept
     {
-      delete m_ptr;
-      m_ptr = nullptr;
+      pointer old = data_;
+      data_ = nullptr;
+      return old;
+    }
+    void reset(pointer p = nullptr) noexcept
+    {
+      if (data_ != p)
+      {
+        delete[] data_;
+        data_ = p;
+      }
+    }
+    void swap(unique_ptr& other) noexcept 
+    {
+      swap(data_, other.data_);
+    }
+
+    // observers
+    pointer get() const noexcept { return data_; }
+    constexpr operator bool() const noexcept { return data_ != nullptr; }
+
+    pointer operator->() const noexcept { return data_; }
+    std::add_lvalue_reference_t<T> operator*() noexcept(noexcept(*std::declval<pointer>())) { return *data_; }
+  };
+
+  template<typename T>
+  class unique_ptr<T[]>
+  {
+  public:
+    using element_type = T;
+    using reference = element_type&;
+    using pointer = element_type*;
+  private:
+    pointer data_;
+  public:
+    // default constructor and destructor
+    constexpr unique_ptr() noexcept : data_(nullptr) {}
+    ~unique_ptr() { delete[] data_; }
+
+    // null pointer constructor and assignment
+    constexpr unique_ptr(nullptr_t) noexcept : data_(nullptr) {}
+    unique_ptr& operator=(nullptr_t)
+    {
+      delete[] data_;
+      data_ = nullptr;
       return *this;
     }
 
-    // release ownership of the underlying pointer
-    T* release() noexcept
+    // raw pointer constructor
+    template<typename U>
+    explicit unique_ptr(pointer p) noexcept(std::is_same_v<pointer, U> || std::is_same_v<nullptr_t, U>) :
+      data_(p) {}
+    
+    // explicitly delete copy constructor and copy assignment
+    unique_ptr(const unique_ptr& other) = delete;
+    unique_ptr& operator=(const unique_ptr& other) = delete;
+
+    // move constructor and move assignment
+    unique_ptr(unique_ptr&& other) noexcept : data_(other.release()) {}
+    unique_ptr& operator=(unique_ptr&& other) noexcept
     {
-      T* old = m_ptr;
-      m_ptr = nullptr;
+      if (this != &other)
+      {
+        reset(other.release());
+      }
+      return *this;
+    }
+
+    // modifiers
+    pointer release() noexcept
+    {
+      pointer old = data_;
+      data_ = nullptr;
       return old;
     }
-
-    // reset the underlying pointer to a new pointer
-    void reset(T* new_ptr) noexcept
+    void reset(pointer p = nullptr) noexcept
     {
-      T* old = m_ptr;
-      m_ptr = new_ptr;
-      if (old)
+      if (data_ != p)
       {
-        delete old;
-      } 
+        delete[] data_;
+        data_ = p;
+      }
     }
-
-    // swap underlying pointer with other unique_ptr
     void swap(unique_ptr& other) noexcept
     {
-      T* temp = move(m_ptr);
-      m_ptr = move(other.m_ptr);
-      other.m_ptr = move(temp);
+      swap(data_, other.data_);
     }
 
-    // return the underlying pointer
-    T* get() const noexcept
-    {
-      return m_ptr;
-    }
+    // observers
+    pointer get() const noexcept { return data_; }
+    explicit operator bool() const noexcept { return data_ != nullptr; }
+    reference operator[](size_t index) const noexcept { return data_[index]; }
 
-    // return true if unique_ptr instance is managing an array
-    explicit operator bool() const noexcept
-    {
-      return m_ptr != nullptr;
-    }
+    // equality operators
+    template<typename U>
+    constexpr bool operator==(const unique_ptr<U>& other) const noexcept { return data_ == other.data_; }
+    constexpr bool operator==(nullptr_t) const noexcept { return data_ == nullptr; }
 
-    // derefence the pointer
-    T& operator*() const noexcept
+    // three way comparison operators
+    template<typename U>
+    auto operator<=>(const unique_ptr<U>& other) const noexcept
     {
-      return *m_ptr;
+      using common_type = std::common_type_t<typename unique_ptr<T[]>::pointer, typename unique_ptr<U>::pointer>;
+      return std::less<common_type>{}(data_, other.data_) ? std::strong_ordering::less :
+             std::less<common_type>{}(other.data_, data_) ? std::strong_ordering::greater : 
+             std::strong_ordering::equal;
     }
-
-    // get raw pointer
-    T* operator->() const noexcept
+    auto operator<=>(nullptr_t) const noexcept
     {
-      return m_ptr;
-    }
-
-    T& operator[](size_t index) const
-    {
-      return m_ptr[index];
+      return data_ == nullptr ? std::strong_ordering::equal : std::strong_ordering::greater;
     }
   };
 
-  // make unique non member function
+  // make unique for both non-array and array types
   template<typename T, typename... Args>
-  unique_ptr<T> make_unique(Args&&... args) {
-    return unique_ptr<T>(new T(forward<Args>(args)...));
+  constexpr unique_ptr<T> make_unique(Args&&... args)
+  {
+    return unique_ptr<T>(new T(forward(args)...));
+  }
+  template<typename T>
+  constexpr unique_ptr<T> make_unique(size_t size)
+  {
+    return unique_ptr<T>(std::remove_extent_t<T>[size]());
   }
   
+  // specialize swap algorithm for unique pointers
+  template<typename T>
+  void swap(unique_ptr<T>& lhs, unique_ptr<T>& rhs) noexcept { lhs.swap(rhs); }
+
+  template<typename T1, typename T2>
+  constexpr bool operator==(unique_ptr<T1>& lhs, unique_ptr<T2>& rhs) noexcept
+  {
+    return lhs == rhs;
+  }
+  template<typename T1, typename T2>
+  auto operator<=>(unique_ptr<T1>& lhs, unique_ptr<T2>& rhs) noexcept
+  {
+    return lhs <=> rhs;
+  }
 }
 
 #endif
