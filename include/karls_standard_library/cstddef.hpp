@@ -1,5 +1,5 @@
-#ifndef KARLS_STL_CSTDDEF_HPP
-#define KARLS_STL_CSTDDEF_HPP
+#ifndef KARLS_STANDARD_LIBRARY_CSTDDEF_HPP
+#define KARLS_STANDARD_LIBRARY_CSTDDEF_HPP
 
 namespace karls_standard_library {
   // size_t alias

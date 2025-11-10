@@ -39,7 +39,7 @@ namespace karls_standard_library {
 
     reference operator[](size_t index) { return *(ptr_ + index); }
     pointer operator->() { return ptr_; }
-    reference operator&() { return *ptr_; } 
+    reference operator*() { return *ptr_; } 
     bool operator==(const vector_iterator& other) const { return ptr_ == other.ptr_; }
     bool operator!=(const vector_iterator& other) const { return !(*this == other); }
   };

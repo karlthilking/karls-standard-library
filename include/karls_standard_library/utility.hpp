@@ -33,7 +33,8 @@ namespace karls_standard_library {
 
   // generalized swap function
   template<typename T>
-  void swap(T& a, T& b) noexcept
+  constexpr void swap(T& a, T& b) 
+  noexcept(std::is_nothrow_move_constructible_v<T> && std::is_nothrow_move_assignable_v<T>)
   {
     T temp = move(a);
     a = move(b);
@@ -42,11 +43,12 @@ namespace karls_standard_library {
 
   // array swap function
   template<typename T, size_t N>
-  void swap(T (&a)[N], T (&b)[N]) noexcept
+  constexpr void swap(T (&a)[N], T (&b)[N]) noexcept
   {
-    T temp[N] = move(a);
-    a = move(b);
-    b = move(temp);
+    for (size_t i = 0; i < N; ++i)
+    {
+      swap(a[i], b[i]);
+    }
   }
 
   // pair implementation
@@ -84,7 +86,7 @@ namespace karls_standard_library {
     // copy assignment operator
     Pair& operator=(const Pair<T1, T2>& p) 
     {
-      if (this != *p) 
+      if (this != &p) 
       {
         first = p.first;
         second = p.second;
