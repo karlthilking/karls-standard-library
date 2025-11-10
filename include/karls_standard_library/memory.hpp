@@ -73,6 +73,25 @@ namespace karls_standard_library
 
     pointer operator->() const noexcept { return data_; }
     std::add_lvalue_reference_t<T> operator*() noexcept(noexcept(*std::declval<pointer>())) { return *data_; }
+
+    // equality operators
+    template<typename U>
+    constexpr bool operator==(const unique_ptr<U>& other) const noexcept { return data_ == other.data_; }
+    constexpr bool operator==(nullptr_t) const noexcept { return data_ == nullptr; }
+
+    // three way comparison operator
+    template<typename U>
+    auto operator<=>(const unique_ptr<U>& other) const noexcept
+    {
+      using common_type = std::common_type_t<typename unique_ptr<T>::pointer, typename unique_ptr<U>::pointer>;
+      return std::less<common_type>{}(data_, other.data_) ? std::strong_ordering::less :
+             std::less<common_type>{}(other.data_, data_) ? std::strong_ordering::greater :
+             std::strong_ordering::equal;
+    }
+    auto operator<=>(nullptr_t) const noexcept
+    {
+      return data_ == nullptr ? std::strong_ordering::equal : std::strong_ordering::greater;
+    }
   };
 
   template<typename T>
@@ -179,11 +198,24 @@ namespace karls_standard_library
   template<typename T>
   void swap(unique_ptr<T>& lhs, unique_ptr<T>& rhs) noexcept { lhs.swap(rhs); }
 
+  // equality operators
   template<typename T1, typename T2>
   constexpr bool operator==(unique_ptr<T1>& lhs, unique_ptr<T2>& rhs) noexcept
   {
     return lhs == rhs;
   }
+  template<typename T>
+  constexpr bool operator==(unique_ptr<T>& lhs, nullptr_t)
+  {
+    return lhs == nullptr_t;
+  }
+  template<typename T>
+  constexpr bool operator==(nullptr_t, unique_ptr<T>& rhs)
+  {
+    return rhs == nullptr_t;
+  }
+
+  // three way comparison operator
   template<typename T1, typename T2>
   auto operator<=>(unique_ptr<T1>& lhs, unique_ptr<T2>& rhs) noexcept
   {
