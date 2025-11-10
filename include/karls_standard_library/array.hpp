@@ -14,6 +14,8 @@ namespace karls_standard_library {
     using size_type = size_t;
     using reference = value_type&;
     using const_reference = const value_type&;
+    using pointer = value_type*;
+    using const_pointer = const value_type*;
     using iterator = value_type*;
     using const_iterator = const value_type*;
 
@@ -23,7 +25,7 @@ namespace karls_standard_library {
 
     iterator end() { return data_ + N; }
     const_iterator end() const { return data_ + N; }
-    const_iteratoe cend() const { return data_ + N; }
+    const_iterator cend() const { return data_ + N; }
   private:
     T data_[N];
   public:
@@ -34,8 +36,13 @@ namespace karls_standard_library {
     array(std::initializer_list<T> init) 
     {
       size_t i = 0;
-      for (const T& value : init) {
-        data_[i++] = value;
+      for (const T& value : init) 
+      {
+        if (i < N) data_[i++] = value;
+      }
+      for(; i < N; ++i)
+      {
+        data_[i] = T{};
       }
     }
 
@@ -57,8 +64,8 @@ namespace karls_standard_library {
     reference back() noexcept{ return data_[N - 1]; }
     const_reference back() const noexcept { return data_[N - 1]; }
 
-    reference data() noexcept { return data_; }
-    const_reference data() const noexcept { return data_; }
+    pointer data() noexcept { return data_; }
+    const_pointer data() const noexcept { return data_; }
 
     reference at(size_t index) 
     {
@@ -84,31 +91,51 @@ namespace karls_standard_library {
 
     void swap(array& other) noexcept(std::is_nothrow_swappable_v<T>)
     {
-      for (size_t i = 0; i < N; ++i)
+      for(size_t i = 0; i < N; ++i)
       {
-        std::swap(data_[i], other.data_[i]);
+        swap(data_[i], other.data_[i]);
       }
+    }
+
+    constexpr bool operator==(const array& other)
+    {
+      return std::equal(data_, data_ + N, other.data_);
+    }
+    constexpr auto operator<=>(const array& other)
+    {
+      return std::lexicographical_compare_three_way(data_, data_ + N, other.data_, other.data_ + M);
     }
   };
 
-  // non-member functions
+  // non-member swap
   template<typename T, size_t N>
-  void swap(array<T, N> lhs, array<T, N> rhs) noexcept(noexcept(lhs.swap(rhs)))
+  void swap(array<T, N>& lhs, array<T, N>& rhs) noexcept(noexcept(lhs.swap(rhs)))
   {
     lhs.swap(rhs);
   }
 
+  // convert cstyle arrays to array
   template<typename T, size_t N>
-  bool operator==(const array<T, N> lhs, const array<T, N> rhs)
+  constexpr array<std::remove_cv_t<T>, N> to_array(T(&a)[N])
   {
+    array<std::remove_cv_t<T>, N> temp;
     for (size_t i = 0; i < N; ++i)
     {
-      if (lhs.data_[i] != rhs.data_[i])
-      {
-        return false;
-      }
+      temp[i] = a[i];
     }
-    return true;
+    return temp;
+  }
+
+  // rvalue specialized 
+  template<typename T, size_t N>
+  constexpr array<std::remove_cv_t<T>, N> to_array(T(&&a)[N])
+  {
+    array<std::remove_cv_t<T>, N> temp;
+    for (size_t i = 0; i < N; ++i)
+    {
+      temp[i] = move(a[i]);
+    }
+    return temp;
   }
 
 }
