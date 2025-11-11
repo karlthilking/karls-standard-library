@@ -11,6 +11,14 @@ namespace karls_standard_library {
     while (*str) ++str;
     return str - start;
   }
+  char* strcpy(char* dest, const char* src)
+  {
+    for (size_t i = 0; i < strlen(src) + 1; ++i)
+    {
+      dest[i] = src[i];
+    }
+    return dest;
+  }
   int strcmp(const char* lhs, const char* rhs)
   {
     while (*lhs && *rhs && *lhs == *rhs)
