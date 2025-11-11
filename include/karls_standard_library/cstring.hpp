@@ -5,41 +5,39 @@
 #include "algorithm.hpp"
 
 namespace karls_standard_library {
-  // strlen method for constr char ptr
-  inline size_t strlen(const char* str) {
+  constexpr size_t strlen(const char* str)
+  {
     const char* start = str;
     while (*str) ++str;
-    return start - str;
+    return str - start;
   }
-
-  // copies count bytes from memory source to destination
-  inline void* memcpy(void* dest, const void* src, size_t count) {
-    char* d = static_cast<char*>(dest);
-    const char* s = static_cast<const char*>(src);
-    for (size_t i = 0; i < count; ++i) {
-      d[i] = s[i];
-    }
-    return dest;
-  }
-
-  /*
-  If lhs appears before rhs in lexicographical order, return negative value
-  If lhs and rhs are equal, return 0
-  If lhs appears after rhs in lexicographical order, return positive value
-  */
-  inline int strcmp(const char* lhs, const char* rhs) {
-    if (!lhs || !rhs) {
-      if (lhs == rhs) return 0;
-      return (lhs) ? 1 : -1;
-    }
-    while (*lhs && *rhs && *lhs == *rhs) {
-      if (*lhs != *rhs) {
-        return static_cast<unsigned char>(*lhs) - static_cast<unsigned char>(*rhs);
-      }
+  int strcmp(const char* lhs, const char* rhs)
+  {
+    while (*lhs && *rhs && *lhs == *rhs)
+    {
       ++lhs;
       ++rhs;
     }
-    return static_cast<unsigned char>(*lhs) - static_cast<unsigned char>(*rhs);
+    return *lhs - *rhs;
+  }
+
+  void* memcpy(void* dest, const void* src, size_t count)
+  {
+    unsigned char* d = static_cast<unsigned char*>(dest);
+    const unsigned char* s = static_cast<const unsigned char*>(src);
+    for (size_t i = 0; i < count; ++i) d[i] = s[i];
+    return dest;
+  }
+
+  int memcmp(const void* lhs, const void* rhs, size_t count)
+  {
+    const unsigned char* l = static_cast<const unsigned char*>(lhs);
+    const unsigned char* r = static_cast<const unsigned char*>(rhs);
+    for (size_t i = 0; i < count; ++i)
+    {
+      if (l[i] != r[i]) return l[i] - r[i];
+    }
+    return 0;
   }
 }
 
