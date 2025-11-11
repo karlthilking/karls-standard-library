@@ -1,7 +1,10 @@
 #ifndef KARLS_STANDARD_LIBRARY_MEMORY_HPP
 #define KARLS_STANDARD_LIBRARY_MEMORY_HPP
 
-#include "cstddef.hpp"
+#include "utility.hpp"
+#include <type_traits>
+#include <compare>
+#include <functional>
 
 namespace karls_standard_library
 {
@@ -79,16 +82,16 @@ namespace karls_standard_library
     constexpr bool operator==(const unique_ptr<U>& other) const noexcept { return data_ == other.data_; }
     constexpr bool operator==(nullptr_t) const noexcept { return data_ == nullptr; }
 
-    // three way comparison operator
+    // three way comparison operators
     template<typename U>
-    auto operator<=>(const unique_ptr<U>& other) const noexcept
+    std::strong_ordering operator<=>(const unique_ptr<U>& other) const noexcept
     {
       using common_type = std::common_type_t<typename unique_ptr<T>::pointer, typename unique_ptr<U>::pointer>;
       return std::less<common_type>{}(data_, other.data_) ? std::strong_ordering::less :
              std::less<common_type>{}(other.data_, data_) ? std::strong_ordering::greater :
              std::strong_ordering::equal;
     }
-    auto operator<=>(nullptr_t) const noexcept
+    std::strong_ordering operator<=>(nullptr_t) const noexcept
     {
       return data_ == nullptr ? std::strong_ordering::equal : std::strong_ordering::greater;
     }
@@ -169,14 +172,14 @@ namespace karls_standard_library
 
     // three way comparison operators
     template<typename U>
-    auto operator<=>(const unique_ptr<U>& other) const noexcept
+    std::strong_ordering operator<=>(const unique_ptr<U>& other) const noexcept
     {
       using common_type = std::common_type_t<typename unique_ptr<T[]>::pointer, typename unique_ptr<U>::pointer>;
       return std::less<common_type>{}(data_, other.data_) ? std::strong_ordering::less :
              std::less<common_type>{}(other.data_, data_) ? std::strong_ordering::greater : 
              std::strong_ordering::equal;
     }
-    auto operator<=>(nullptr_t) const noexcept
+    std::strong_ordering operator<=>(nullptr_t) const noexcept
     {
       return data_ == nullptr ? std::strong_ordering::equal : std::strong_ordering::greater;
     }
@@ -186,41 +189,18 @@ namespace karls_standard_library
   template<typename T, typename... Args>
   constexpr unique_ptr<T> make_unique(Args&&... args)
   {
-    return unique_ptr<T>(new T(forward(args)...));
+    return unique_ptr<T>(new T(forward<Args>(args)...));
   }
   template<typename T>
   constexpr unique_ptr<T> make_unique(size_t size)
   {
-    return unique_ptr<T>(std::remove_extent_t<T>[size]());
+    return unique_ptr<T>(new std::remove_extent_t<T>[size]());
   }
   
   // specialize swap algorithm for unique pointers
   template<typename T>
   void swap(unique_ptr<T>& lhs, unique_ptr<T>& rhs) noexcept { lhs.swap(rhs); }
 
-  // equality operators
-  template<typename T1, typename T2>
-  constexpr bool operator==(unique_ptr<T1>& lhs, unique_ptr<T2>& rhs) noexcept
-  {
-    return lhs == rhs;
-  }
-  template<typename T>
-  constexpr bool operator==(unique_ptr<T>& lhs, nullptr_t)
-  {
-    return lhs == nullptr_t;
-  }
-  template<typename T>
-  constexpr bool operator==(nullptr_t, unique_ptr<T>& rhs)
-  {
-    return rhs == nullptr_t;
-  }
-
-  // three way comparison operator
-  template<typename T1, typename T2>
-  auto operator<=>(unique_ptr<T1>& lhs, unique_ptr<T2>& rhs) noexcept
-  {
-    return lhs <=> rhs;
-  }
 }
 
 #endif

@@ -2,6 +2,7 @@
 #define KARLS_STANDARD_LIBRARY_UTILITY_HPP
 
 #include <type_traits>
+#include <compare>
 
 namespace karls_standard_library {
   // move semantics
@@ -10,7 +11,7 @@ namespace karls_standard_library {
     return static_cast<std::remove_reference_t<T>&&>(t);
   }
 
-  // forward
+  // conditional
   template<typename T>
   constexpr T&& forward(std::remove_reference_t<T>& t) noexcept {
     return static_cast<T&&>(t);
@@ -27,7 +28,7 @@ namespace karls_standard_library {
   noexcept(std::is_nothrow_move_constructible_v<T> && std::is_nothrow_move_assignable<U>::value)
   {
     T old = move(obj);
-    obj = static_cast<U&&>(new_value);
+    obj = forward<U>(new_value);
     return old;
   }
 
@@ -129,7 +130,7 @@ namespace karls_standard_library {
       swap(second, p.second);
     }
 
-    // equality/inequality ==, !=
+    // equality and comparison operators
     template<typename U1, typename U2>
     bool operator==(const Pair<U1, U2>& p) 
     {
@@ -137,34 +138,10 @@ namespace karls_standard_library {
     }
 
     template<typename U1, typename U2>
-    bool operator!=(const Pair<U1, U2>& p) 
+    constexpr auto operator<=>(const Pair<U1, U2>& other)
     {
-      return !(*this == p);
-    }
-
-    // ordering operators <, <=, >, >=
-    template<typename U1, typename U2>
-    bool operator<(const Pair<U1, U2>& p) 
-    {
-      return first < p.first || !(first > p.first) && second < p.second;
-    }
-
-    template<typename U1, typename U2>
-    bool operator<=(const Pair<U1, U2>& p) 
-    {
-      return !(p < *this);
-    }
-
-    template<typename U1, typename U2>
-    bool operator>(const Pair<U1, U2>& p) 
-    {
-      return !(*this <= p);
-    }
-
-    template<typename U1, typename U2>
-    bool operator>=(const Pair<U1, U2>& p) 
-    {
-      return !(*this < p);
+      if (auto cmp = first <=> other.first; cmp != 0) return cmp;
+      return second <=> other.second;
     }
   };
 
@@ -177,53 +154,23 @@ namespace karls_standard_library {
 
   // non-member pair swap
   template<typename T1, typename T2, typename U1, typename U2>
-  void swap(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) 
+  void swap(Pair<T1, T2>& lhs, Pair<U1, U2>& rhs) 
   {
     lhs.swap(rhs);
   }
 
-  // non-member pair equality and inequality checks
+  // comparison functions
   template<typename T1, typename T2, typename U1, typename U2>
   bool operator==(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) 
   {
-    return lhs.first == rhs.first && lhs.second == rhs.second;
-  }
-  template<typename T1, typename T2, typename U1, typename U2>
-  bool operator!=(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) 
-  {
-    return !(lhs == rhs);
+    return lhs==(rhs);
   }
 
-  // non-member pair ordering operators
   template<typename T1, typename T2, typename U1, typename U2>
-  bool operator<(const Pair<T1, T2>& lhs, const Pair<U2, U2>& rhs) 
+  constexpr auto operator<=>(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs)
   {
-    if (lhs.first != rhs.first) 
-    {
-      return lhs.first < rhs.first;
-    }
-    else 
-    {
-      return lhs.second < rhs.second;
-    }
+    return lhs <=> rhs;
   }
-  template<typename T1, typename T2, typename U1, typename U2>
-  bool operator<=(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) 
-  {
-    return !(rhs < lhs);
-  }
-  template<typename T1, typename T2, typename U1, typename U2>
-  bool operator>(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) 
-  {
-    return rhs < lhs;
-  }
-  template<typename T1, typename T2, typename U1, typename U2>
-  bool operator>=(const Pair<T1, T2>& lhs, const Pair<U1, U2>& rhs) 
-  {
-    return !(lhs < rhs);
-  }
-
-  // algorithms
 
   // function objects
 

@@ -91,8 +91,7 @@ namespace karls_standard_library {
     // destructor
     ~string() 
     {
-      clear();
-      dealloc();
+      delete[] data_;
     }
 
     // cstring constructor
@@ -173,8 +172,7 @@ namespace karls_standard_library {
     string& operator=(string&& other) 
     {
       if (this != &other) 
-      {
-        clear();
+      { 
         dealloc();
         data_ = exchange(other.data_, nullptr);
         size_ = exchange(other.size_, 0);
@@ -429,41 +427,24 @@ namespace karls_standard_library {
       return string(data_ + pos, length);
     }
 
+    // equality / comparison
+    constexpr bool operator==(const string& other) const noexcept
+    {
+      if (size_ != other.size_) return false;
+      return memcmp(data_, other.data_, size_) == 0;
+    }
+    auto operator<=>(const string& other) const noexcept
+    {
+      return lexicographical_compare_three_way(
+        data_, data_ + size_,
+        other.data_, other.data_ + size_
+      );
+    }
+
     // functions i/o functions to allow for accessing private members
     friend std::ostream& operator<<(std::ostream& os, const string& str);
     friend std::istream& operator>>(std::istream& is, string& str);
   };
-
-  // non-member comparison
-  inline bool operator==(const string& lhs, const string& rhs) {
-    if (lhs.size() != rhs.size())
-    {
-      return false;
-    }
-    for (size_t i = 0; i < lhs.size(); ++i)
-    {
-      if (lhs[i] != rhs[i])
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-  inline bool operator!=(const string& lhs, const string& rhs) {
-    return !(lhs == rhs);
-  }
-  inline bool operator==(const string& lhs, const char* rhs) {
-    return strcmp(lhs.data(), rhs) == 0;
-  }
-  inline bool operator!=(const string& lhs, const char* rhs) {
-    return !(lhs == rhs);
-  }
-  inline bool operator==(const char* lhs, const string& rhs) {
-    return rhs == lhs;
-  }
-  inline bool operator!=(const char* lhs, const string& rhs) {
-    return !(lhs == rhs);
-  }
 
   // non-member function for output stream
   inline std::ostream& operator<<(std::ostream& os, const string& str) 

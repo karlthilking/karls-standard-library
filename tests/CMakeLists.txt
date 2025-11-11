@@ -6,6 +6,7 @@ add_executable(test_my_standard_library
     test_algorithms.cpp
     test_list.cpp
     test_utility.cpp
+    test_array.cpp
 )
 
 target_include_directories(test_my_standard_library PRIVATE 

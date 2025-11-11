@@ -2,8 +2,10 @@
 #define KARLS_STANDARD_LIBRARY_ARRAY_HPP
 
 #include "cstddef.hpp"
+#include "utility.hpp"
+#include "algorithm.hpp"
+#include <initializer_list>
 #include <stdexcept>
-#include <utility>
 #include <type_traits>
 
 namespace karls_standard_library {
@@ -69,14 +71,16 @@ namespace karls_standard_library {
 
     reference at(size_t index) 
     {
-      if (index >= N) {
+      if (index >= N) 
+      {
         throw std::out_of_range("index out of bounds");
       }
       return data_[index];
     }
     const_reference at(size_t index) const 
     {
-      if (index >= N) {
+      if (index >= N) 
+      {
         throw std::out_of_range("index out of bounds");
       }
       return data_[index];
@@ -93,17 +97,21 @@ namespace karls_standard_library {
     {
       for(size_t i = 0; i < N; ++i)
       {
-        swap(data_[i], other.data_[i]);
+        karls_standard_library::swap(data_[i], other.data_[i]);
       }
     }
 
-    constexpr bool operator==(const array& other)
+    // equality comparison
+    constexpr bool operator==(const array& other) const noexcept
     {
-      return std::equal(data_, data_ + N, other.data_);
+      return equal(data_, data_ + N, other.data_);
     }
-    constexpr auto operator<=>(const array& other)
+    // three way comparison
+    constexpr auto operator<=>(const array& other) const noexcept
     {
-      return std::lexicographical_compare_three_way(data_, data_ + N, other.data_, other.data_ + M);
+      return lexicographical_compare_three_way(
+        data_, data_ + N, other.data_, other.data_ + N
+      );
     }
   };
 

@@ -30,15 +30,13 @@ namespace karls_standard_library {
   template<typename It1, typename It2>
   constexpr auto lexicographical_compare_three_way(It1 f1, It1 l1, It2 f2, It2 l2)
   {
-    while (f1 != l1 && f2 != l2)
+    for (; f1 != l1 && f2 != l2; ++f1, ++f2)
     {
-      if (auto cmp = f1 <=> f2; cmp != 0) return cmp;
-      ++f1;
-      ++f2;
+      if (auto cmp = *f1 <=> *f2; cmp != 0) return cmp;
     }
-    return (f2 == l2) ? std::strong_ordering::greater :
+    return (f1 == l1 && f2 == l2) ? std::strong_ordering::equal :
            (f1 == l1) ? std::strong_ordering::less :
-           std::strong_ordering::equal;
+           std::strong_ordering::greater;
   }
 }
 
