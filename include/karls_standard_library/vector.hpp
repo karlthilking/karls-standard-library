@@ -12,6 +12,7 @@ namespace karls_standard_library {
     using value_type = typename vector::value_type;
     using pointer = value_type*;
     using reference = value_type&;
+    using difference_type = ptrdiff_t;
   private:
     pointer ptr_;
   public:
@@ -51,6 +52,7 @@ namespace karls_standard_library {
   public:
     using value_type = T;
     using size_type = size_t;
+    using difference_type = ptrdiff_t;
     using reference = T&;
     using const_reference = const value_type&;
     using iterator = vector_iterator<vector<T>>;
