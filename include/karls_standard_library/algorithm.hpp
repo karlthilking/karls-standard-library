@@ -16,6 +16,90 @@ namespace karls_standard_library {
     return (a > b) ? a : b;
   }
 
+  // find, find_if, find_if_not
+  template<typename It, typename T>
+  constexpr It find(It first, It last, const T& value)
+  {
+    for (; first != last; ++first)
+    {
+      if (*first == value) return first;
+    }
+    return last;
+  }
+  template<typename It, typename Pred>
+  constexpr It find_if(It first, It last, Pred p)
+  {
+    for (; first != last; ++first)
+    {
+      if (p(*first)) return first;
+    }
+    return last;
+  }
+  template<typename It, typename Pred>
+  constexpr It find_if_not(It first, It last, Pred p)
+  {
+    for (; first != last; ++first)
+    {
+      if (!p(*first)) return first;
+    }
+    return last;
+  }
+  
+  // check if predicate returns true for all elements in range
+  template<typename It, typename Pred>
+  constexpr bool all_of(It first, It last, Pred p)
+  {
+    for (; first != last; ++first)
+    {
+      if (!p(*first)) return false;
+    }
+    return true;
+  }
+  // check if predicate returns true for any elements in range
+  template<typename It, typename Pred>
+  constexpr bool any_of(It first, It last, Pred p)
+  {
+    for (; first != last; ++first)
+    {
+      if (p(*first)) return true;
+    }
+    return false;
+  }
+  // check if predicate returns false for all elements in range
+  template<typename It, typename Pred>
+  constexpr bool none_of(It first, It last, Pred p)
+  {
+    for (; first != last; ++first)
+    {
+      if (p(*first)) return false;
+    }
+    return true;
+  }
+
+  // return number of iterators satisfy *it == value
+  template<typename It, typename T>
+  constexpr typename std::iterator_traits<It>::difference_type
+  count(It first, It last, const T& value)
+  {
+    typename std::iterator_traits<It>::difference_type count = 0;
+    for (; first != last; ++first)
+    {
+      if (*first == value) ++count;
+    }
+    return count;
+  }
+  template<typename It, typename Pred>
+  constexpr typename std::iterator_traits<It>::difference_type
+  count_if(It first, It last, Pred p)
+  {
+    typename std::iterator_traits<It>::difference_type count = 0;
+    for (; first != last; ++first)
+    {
+      if (p(*first)) ++count;
+    }
+    return count;
+  }
+
   template<typename It1, typename It2>
   constexpr bool equal(It1 f1, It1 l1, It2 f2)
   {
