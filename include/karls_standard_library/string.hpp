@@ -388,6 +388,46 @@ namespace karls_standard_library {
       return *this;
     }
 
+		// replace function inspired by python str replace
+		string& replace(const char* a, const char* b)
+		{
+			size_t n = strlen(a);
+			size_t m = strlen(b);
+			
+			size_t new_cap = capacity_;
+			size_t new_size;
+
+			if(m > n)
+			{
+				new_cap = (size_ / n + 1) * m;
+				reserve(new_cap);
+			}
+
+			char* new_data = new char[capacity_];
+			
+			for(size_t i{}; i < size_; ++i)
+			{
+				if(i <= size_ - n && substr(i, n) == a)
+				{
+					for(size_t j{}; j < m; ++j)
+					{
+						new_data[new_size++] = b[j]; 
+					}
+					i += n;
+				}
+				else
+				{
+					new_data[new_size++] = data_[i];
+					++i;
+				}
+			}
+			
+			delete[] data_;
+			data_ = new_data;
+			size_ = new_size;
+			return *this;
+		}
+
     // delegate resize function without speicifed value to other with default constructor
     void resize(size_t count) { resize(count, char{}); }
     // resize the string to count size; appends c to end if count > size
@@ -477,6 +517,28 @@ namespace karls_standard_library {
     }
     return is;
   }
+	
+	// string split function to partition string by delimeter
+	// inspired from python
+	vector<string> split(std::string& s, char delim = ' ')
+	{
+		vector<string> result;
+		while(1)
+		{
+			pos = s.find(s.begin(), s.end(), delim);
+			if(pos == string::npos)
+			{
+				result.push_back(s);
+				break;
+			}
+			else
+			{
+				result.push_back(s.substr(0, end));
+				s = s.substr(end + 1);
+			}
+		}
+		return result;
+	}
 }
 
 #endif
